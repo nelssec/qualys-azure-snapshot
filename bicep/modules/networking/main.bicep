@@ -6,24 +6,29 @@ param targetLocations array
 param targetCloud string
 param tags object
 
+#disable-next-line no-hardcoded-env-urls
 var dnsSuffixes = {
   AzureCloud: {
     keyvault: 'privatelink.vaultcore.azure.net'
+    #disable-next-line no-hardcoded-env-urls
     blob: 'privatelink.blob.core.windows.net'
     cosmos: 'privatelink.documents.azure.com'
     web: 'privatelink.azurewebsites.net'
+    servicebus: 'privatelink.servicebus.windows.net'
   }
   AzureUSGovernment: {
     keyvault: 'privatelink.vaultcore.usgovcloudapi.net'
     blob: 'privatelink.blob.core.usgovcloudapi.net'
     cosmos: 'privatelink.documents.azure.us'
     web: 'privatelink.azurewebsites.us'
+    servicebus: 'privatelink.servicebus.usgovcloudapi.net'
   }
   AzureChinaCloud: {
     keyvault: 'privatelink.vaultcore.azure.cn'
     blob: 'privatelink.blob.core.chinacloudapi.cn'
     cosmos: 'privatelink.documents.azure.cn'
     web: 'privatelink.chinacloudsites.cn'
+    servicebus: 'privatelink.servicebus.chinacloudapi.cn'
   }
 }
 
@@ -88,6 +93,42 @@ resource serviceNsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
   tags: tags
 }
 
+resource privateEndpointsNsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
+  name: 'qualys-pe-nsg-${deploymentId}'
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'AllowVnetInbound'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+        }
+      }
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 4096
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
 resource serviceVnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: 'qualys-service-vnet-${deploymentId}'
   location: location
@@ -117,6 +158,9 @@ resource serviceVnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         name: 'private-endpoints-subnet'
         properties: {
           addressPrefix: '10.0.2.0/24'
+          networkSecurityGroup: {
+            id: privateEndpointsNsg.id
+          }
         }
       }
     ]
@@ -188,6 +232,12 @@ resource cosmosDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   tags: tags
 }
 
+resource servicebusDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: dns.servicebus
+  location: 'global'
+  tags: tags
+}
+
 resource keyvaultDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
   parent: keyvaultDnsZone
   name: 'keyvault-link'
@@ -227,12 +277,26 @@ resource cosmosDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@20
   tags: tags
 }
 
+resource servicebusDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: servicebusDnsZone
+  name: 'servicebus-link'
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: serviceVnet.id
+    }
+    registrationEnabled: false
+  }
+  tags: tags
+}
+
 output serviceVnetId string = serviceVnet.id
 output serviceVnetName string = serviceVnet.name
 output functionAppSubnetId string = serviceVnet.properties.subnets[0].id
 output privateEndpointSubnetId string = serviceVnet.properties.subnets[1].id
-output scannerVnetIds object = reduce(targetLocations, {}, (cur, loc, i) => union(cur, { '${loc}': scannerVnets[i].id }))
-output scannerSubnetIds object = reduce(targetLocations, {}, (cur, loc, i) => union(cur, { '${loc}': scannerVnets[i].properties.subnets[0].id }))
+output scannerVnetIds array = [for (loc, i) in targetLocations: { location: loc, id: scannerVnets[i].id }]
+output scannerSubnetIds array = [for (loc, i) in targetLocations: { location: loc, id: scannerVnets[i].properties.subnets[0].id }]
 output keyvaultDnsZoneId string = keyvaultDnsZone.id
 output blobDnsZoneId string = blobDnsZone.id
 output cosmosDnsZoneId string = cosmosDnsZone.id
+output servicebusDnsZoneId string = servicebusDnsZone.id

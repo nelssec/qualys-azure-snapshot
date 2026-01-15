@@ -137,6 +137,8 @@ resource scanningQueue 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-previe
 output storageAccountId string = storageAccount.id
 output storageAccountName string = storageAccount.name
 output storageAccountPrimaryBlobEndpoint string = storageAccount.properties.primaryEndpoints.blob
+#disable-next-line outputs-should-not-contain-secrets
+output storageAccountKey string = storageAccount.listKeys().keys[0].value
 output storageContainerName string = functionPackagesContainer.name
 output serviceBusNamespace string = serviceBusNamespace.name
 output serviceBusNamespaceId string = serviceBusNamespace.id

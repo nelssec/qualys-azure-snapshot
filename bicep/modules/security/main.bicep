@@ -7,7 +7,6 @@ param deployerObjectId string
 @secure()
 param qualysSubscriptionToken string
 param targetLocations array
-param roleBoundary string
 param tags object
 
 var locationAbbrev = {
@@ -96,7 +95,7 @@ resource deployerKeyVaultAdmin 'Microsoft.Authorization/roleAssignments@2022-04-
 }
 
 resource scannerKeyVaultReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(secretsKeyVault.id, scannerIdentity.properties.principalId, 'Key Vault Secrets User')
+  name: guid(secretsKeyVault.id, scannerIdentity.id, 'Key Vault Secrets User')
   scope: secretsKeyVault
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
@@ -106,7 +105,7 @@ resource scannerKeyVaultReader 'Microsoft.Authorization/roleAssignments@2022-04-
 }
 
 resource logicAppKeyVaultReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(secretsKeyVault.id, logicAppIdentity.properties.principalId, 'Key Vault Secrets User')
+  name: guid(secretsKeyVault.id, logicAppIdentity.id, 'Key Vault Secrets User')
   scope: secretsKeyVault
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
@@ -133,38 +132,33 @@ resource diskEncryptionKeyVaults 'Microsoft.KeyVault/vaults@2023-07-01' = [for l
       family: 'A'
       name: 'standard'
     }
-    enableRbacAuthorization: true
     enabledForDiskEncryption: true
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
     enablePurgeProtection: true
-    publicNetworkAccess: 'Disabled'
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
     }
+    accessPolicies: [
+      {
+        tenantId: tenantId
+        objectId: deployerObjectId
+        permissions: {
+          keys: ['all']
+          secrets: ['all']
+        }
+      }
+      {
+        tenantId: tenantId
+        objectId: scannerIdentity.properties.principalId
+        permissions: {
+          keys: ['get', 'wrapKey', 'unwrapKey']
+        }
+      }
+    ]
   }
   tags: tags
-}]
-
-resource deployerDiskKvAdmin 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for (loc, i) in targetLocations: {
-  name: guid(diskEncryptionKeyVaults[i].id, deployerObjectId, 'Key Vault Administrator')
-  scope: diskEncryptionKeyVaults[i]
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')
-    principalId: deployerObjectId
-    principalType: 'User'
-  }
-}]
-
-resource scannerDiskKvCrypto 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for (loc, i) in targetLocations: {
-  name: guid(diskEncryptionKeyVaults[i].id, scannerIdentity.properties.principalId, 'Key Vault Crypto User')
-  scope: diskEncryptionKeyVaults[i]
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '12338af0-0e69-4776-bea7-57ae8d297424')
-    principalId: scannerIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
 }]
 
 resource diskEncryptionKeys 'Microsoft.KeyVault/vaults/keys@2023-07-01' = [for (loc, i) in targetLocations: {
@@ -175,7 +169,6 @@ resource diskEncryptionKeys 'Microsoft.KeyVault/vaults/keys@2023-07-01' = [for (
     keySize: 2048
     keyOps: ['decrypt', 'encrypt', 'sign', 'unwrapKey', 'verify', 'wrapKey']
   }
-  dependsOn: [deployerDiskKvAdmin]
 }]
 
 resource diskEncryptionSets 'Microsoft.Compute/diskEncryptionSets@2023-10-02' = [for (loc, i) in targetLocations: {
@@ -194,119 +187,7 @@ resource diskEncryptionSets 'Microsoft.Compute/diskEncryptionSets@2023-10-02' = 
     encryptionType: 'EncryptionAtRestWithCustomerKey'
   }
   tags: tags
-  dependsOn: [scannerDiskKvCrypto]
 }]
-
-resource functionAppRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
-  name: guid(roleBoundary, 'Qualys Scanner Function App Role', deploymentId)
-  properties: {
-    roleName: 'Qualys Scanner Function App Role ${deploymentId}'
-    description: 'Custom role for Qualys Snapshot Scanner Function App'
-    type: 'CustomRole'
-    permissions: [
-      {
-        actions: [
-          'Microsoft.Compute/virtualMachines/read'
-          'Microsoft.Compute/virtualMachineScaleSets/read'
-          'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/read'
-          'Microsoft.Compute/disks/read'
-          'Microsoft.Compute/snapshots/read'
-          'Microsoft.Network/networkInterfaces/read'
-          'Microsoft.Network/publicIPAddresses/read'
-          'Microsoft.Network/virtualNetworks/read'
-          'Microsoft.Network/virtualNetworks/subnets/read'
-          'Microsoft.Resources/subscriptions/resourceGroups/read'
-          'Microsoft.DocumentDB/databaseAccounts/readMetadata'
-          'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
-        ]
-      }
-    ]
-    assignableScopes: [roleBoundary]
-  }
-}
-
-resource logicAppRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
-  name: guid(roleBoundary, 'Qualys Scanner Logic App Role', deploymentId)
-  properties: {
-    roleName: 'Qualys Scanner Logic App Role ${deploymentId}'
-    description: 'Custom role for Qualys Snapshot Scanner Logic Apps'
-    type: 'CustomRole'
-    permissions: [
-      {
-        actions: [
-          'Microsoft.Compute/virtualMachines/read'
-          'Microsoft.Compute/virtualMachines/write'
-          'Microsoft.Compute/virtualMachines/delete'
-          'Microsoft.Compute/virtualMachines/runCommand/action'
-          'Microsoft.Compute/virtualMachineScaleSets/read'
-          'Microsoft.Compute/disks/read'
-          'Microsoft.Compute/disks/write'
-          'Microsoft.Compute/disks/delete'
-          'Microsoft.Compute/disks/beginGetAccess/action'
-          'Microsoft.Compute/disks/endGetAccess/action'
-          'Microsoft.Compute/snapshots/read'
-          'Microsoft.Compute/snapshots/write'
-          'Microsoft.Compute/snapshots/delete'
-          'Microsoft.Compute/snapshots/beginGetAccess/action'
-          'Microsoft.Compute/snapshots/endGetAccess/action'
-          'Microsoft.Network/networkInterfaces/read'
-          'Microsoft.Network/networkInterfaces/write'
-          'Microsoft.Network/networkInterfaces/delete'
-          'Microsoft.Network/networkInterfaces/join/action'
-          'Microsoft.Network/publicIPAddresses/read'
-          'Microsoft.Network/publicIPAddresses/write'
-          'Microsoft.Network/publicIPAddresses/delete'
-          'Microsoft.Network/publicIPAddresses/join/action'
-          'Microsoft.Network/virtualNetworks/read'
-          'Microsoft.Network/virtualNetworks/subnets/read'
-          'Microsoft.Network/virtualNetworks/subnets/join/action'
-          'Microsoft.Network/networkSecurityGroups/read'
-          'Microsoft.Network/networkSecurityGroups/join/action'
-          'Microsoft.Logic/workflows/read'
-          'Microsoft.Logic/workflows/write'
-          'Microsoft.Logic/workflows/run/action'
-          'Microsoft.Logic/workflows/triggers/run/action'
-          'Microsoft.Web/sites/read'
-          'Microsoft.Web/sites/restart/action'
-          'Microsoft.Storage/storageAccounts/read'
-          'Microsoft.Storage/storageAccounts/listKeys/action'
-          'Microsoft.Storage/storageAccounts/blobServices/containers/read'
-          'Microsoft.Storage/storageAccounts/blobServices/containers/write'
-          'Microsoft.Resources/subscriptions/resourceGroups/read'
-        ]
-      }
-    ]
-    assignableScopes: [roleBoundary]
-  }
-}
-
-resource targetScannerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
-  name: guid(roleBoundary, 'Qualys Target Scanner Role', deploymentId)
-  properties: {
-    roleName: 'Qualys Target Scanner Role ${deploymentId}'
-    description: 'Custom role for scanning VMs in target subscriptions'
-    type: 'CustomRole'
-    permissions: [
-      {
-        actions: [
-          'Microsoft.Compute/virtualMachines/read'
-          'Microsoft.Compute/virtualMachineScaleSets/read'
-          'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/read'
-          'Microsoft.Compute/disks/read'
-          'Microsoft.Compute/disks/beginGetAccess/action'
-          'Microsoft.Compute/snapshots/read'
-          'Microsoft.Compute/snapshots/write'
-          'Microsoft.Compute/snapshots/delete'
-          'Microsoft.Network/networkInterfaces/read'
-          'Microsoft.Network/virtualNetworks/read'
-          'Microsoft.Network/virtualNetworks/subnets/read'
-          'Microsoft.Resources/subscriptions/resourceGroups/read'
-        ]
-      }
-    ]
-    assignableScopes: [roleBoundary]
-  }
-}
 
 output scannerIdentityId string = scannerIdentity.id
 output scannerIdentityClientId string = scannerIdentity.properties.clientId
@@ -318,7 +199,4 @@ output secretsKeyVaultId string = secretsKeyVault.id
 output secretsKeyVaultName string = secretsKeyVault.name
 output secretsKeyVaultUri string = secretsKeyVault.properties.vaultUri
 output qualysTokenSecretName string = qualysTokenSecret.name
-output diskEncryptionSetIds object = reduce(targetLocations, {}, (cur, loc, i) => union(cur, { '${loc}': diskEncryptionSets[i].id }))
-output functionAppRoleId string = functionAppRole.id
-output logicAppRoleId string = logicAppRole.id
-output targetScannerRoleId string = targetScannerRole.id
+output diskEncryptionSetIds array = [for (loc, i) in targetLocations: { location: loc, id: diskEncryptionSets[i].id }]

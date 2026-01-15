@@ -49,8 +49,8 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   location: location
   kind: 'linux'
   sku: {
-    name: 'FC1'
-    tier: 'FlexConsumption'
+    name: 'P1v2'
+    tier: 'PremiumV2'
   }
   properties: {
     reserved: true
@@ -92,15 +92,19 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
         { name: 'LOCATION_CONCURRENCY', value: string(locationConcurrency) }
         { name: 'SCANNERS_PER_LOCATION', value: string(scannersPerLocation) }
         { name: 'APP_VERSION', value: appVersion }
+        #disable-next-line BCP318
         { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: debugEnabled ? appInsights.properties.InstrumentationKey : '' }
+        #disable-next-line BCP318
         { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: debugEnabled ? appInsights.properties.ConnectionString : '' }
       ]
     }
   }
+  #disable-next-line BCP318
   tags: union(tags, debugEnabled ? { 'hidden-link: /app-insights-resource-id': appInsights.id } : {})
 }
 
 output functionAppId string = functionApp.id
 output functionAppName string = functionApp.name
 output functionAppHostname string = functionApp.properties.defaultHostName
+#disable-next-line BCP318
 output appInsightsConnectionString string = debugEnabled ? appInsights.properties.ConnectionString : ''

@@ -1,7 +1,10 @@
-targetScope = 'resourceGroup'
+targetScope = 'subscription'
 
 @description('Azure region for deployment')
-param location string = resourceGroup().location
+param location string
+
+@description('Resource group name for deployment')
+param resourceGroupName string = 'qualys-scanner-rg'
 
 @description('Qualys platform API endpoint')
 param qualysEndpoint string
@@ -12,9 +15,6 @@ param qualysSubscriptionToken string
 
 @description('Azure regions to scan VMs in')
 param targetLocations array
-
-@description('Subscription IDs to scan')
-param targetSubscriptions array = [subscription().subscriptionId]
 
 @description('Azure cloud environment')
 @allowed(['AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud'])
@@ -33,7 +33,7 @@ param eventBasedDiscovery bool = false
 param scanIntervalHours int = 24
 
 @description('Hours between poll-based discovery cycles')
-param pollIntervalHours int = 24
+param pollIntervalHours int = 4
 
 @description('Maximum concurrent location scans')
 param locationConcurrency int = 5
@@ -47,8 +47,13 @@ param appVersion string = '3.20.0'
 @description('Additional resource tags')
 param tags object = {}
 
-var deploymentId = uniqueString(resourceGroup().id)
-var roleBoundary = subscription().id
+@description('Custom deployment ID (5 digits recommended). If not provided, a unique ID is generated.')
+param customDeploymentId string = ''
+
+@description('Role boundary for custom RBAC roles. Use subscription ID for single subscription, or management group ID for tenant-wide scanning.')
+param roleBoundary string = subscription().id
+
+var deploymentId = empty(customDeploymentId) ? substring(uniqueString(subscription().id, resourceGroupName), 0, 5) : customDeploymentId
 
 var commonTags = union({
   App: 'qualys-snapshot-scanner'
@@ -56,8 +61,23 @@ var commonTags = union({
   Name: 'Qualys Snapshot Scanner'
 }, tags)
 
+resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
+  name: resourceGroupName
+  location: location
+  tags: commonTags
+}
+
+module roles 'modules/roles/main.bicep' = {
+  name: 'roles-${deploymentId}'
+  params: {
+    deploymentId: deploymentId
+    roleBoundary: roleBoundary
+  }
+}
+
 module security 'modules/security/main.bicep' = {
   name: 'security-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
@@ -65,13 +85,13 @@ module security 'modules/security/main.bicep' = {
     deployerObjectId: deployerObjectId
     qualysSubscriptionToken: qualysSubscriptionToken
     targetLocations: targetLocations
-    roleBoundary: roleBoundary
     tags: commonTags
   }
 }
 
 module networking 'modules/networking/main.bicep' = {
   name: 'networking-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
@@ -83,6 +103,7 @@ module networking 'modules/networking/main.bicep' = {
 
 module storage 'modules/storage/main.bicep' = {
   name: 'storage-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
@@ -96,6 +117,7 @@ module storage 'modules/storage/main.bicep' = {
 
 module cosmos 'modules/cosmos/main.bicep' = {
   name: 'cosmos-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
@@ -108,13 +130,22 @@ module cosmos 'modules/cosmos/main.bicep' = {
   }
 }
 
-resource storageAccountRef 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: 'qualysst${deploymentId}'
-  dependsOn: [storage]
+module keyVaultPrivateEndpoint 'modules/keyvault-pe/main.bicep' = {
+  name: 'keyvault-pe-${deploymentId}'
+  scope: rg
+  params: {
+    location: location
+    deploymentId: deploymentId
+    keyVaultId: security.outputs.secretsKeyVaultId
+    privateEndpointSubnetId: networking.outputs.privateEndpointSubnetId
+    keyvaultDnsZoneId: networking.outputs.keyvaultDnsZoneId
+    tags: commonTags
+  }
 }
 
 module functionApp 'modules/function-app/main.bicep' = {
   name: 'function-app-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
@@ -123,7 +154,7 @@ module functionApp 'modules/function-app/main.bicep' = {
     scannerIdentityClientId: security.outputs.scannerIdentityClientId
     functionAppSubnetId: networking.outputs.functionAppSubnetId
     storageAccountName: storage.outputs.storageAccountName
-    storageAccountKey: storageAccountRef.listKeys().keys[0].value
+    storageAccountKey: storage.outputs.storageAccountKey
     cosmosDbEndpoint: cosmos.outputs.cosmosDbEndpoint
     cosmosDbName: cosmos.outputs.cosmosDbDatabaseName
     keyVaultUri: security.outputs.secretsKeyVaultUri
@@ -140,34 +171,31 @@ module functionApp 'modules/function-app/main.bicep' = {
 
 module logicApps 'modules/logic-apps/main.bicep' = {
   name: 'logic-apps-${deploymentId}'
+  scope: rg
   params: {
     location: location
     deploymentId: deploymentId
     subscriptionId: subscription().subscriptionId
     tenantId: subscription().tenantId
     logicAppIdentityId: security.outputs.logicAppIdentityId
-    logicAppIdentityPrincipalId: security.outputs.logicAppIdentityPrincipalId
-    scannerIdentityId: security.outputs.scannerIdentityId
-    scannerIdentityClientId: security.outputs.scannerIdentityClientId
     secretsKeyVaultName: security.outputs.secretsKeyVaultName
     qualysTokenSecretName: security.outputs.qualysTokenSecretName
     qualysEndpoint: qualysEndpoint
     functionAppHostname: functionApp.outputs.functionAppHostname
-    functionAppName: functionApp.outputs.functionAppName
     storageAccountName: storage.outputs.storageAccountName
     storageContainerName: storage.outputs.storageContainerName
-    cosmosDbEndpoint: cosmos.outputs.cosmosDbEndpoint
-    serviceBusNamespace: storage.outputs.serviceBusNamespace
-    targetLocations: targetLocations
-    targetSubscriptions: targetSubscriptions
     eventBasedDiscovery: eventBasedDiscovery
     appVersion: appVersion
+    pollIntervalHours: pollIntervalHours
+    scanIntervalHours: scanIntervalHours
+    locationConcurrency: locationConcurrency
+    scannersPerLocation: scannersPerLocation
     tags: commonTags
   }
 }
 
 output deploymentId string = deploymentId
-output resourceGroupName string = resourceGroup().name
+output resourceGroupName string = rg.name
 output scannerIdentity object = {
   id: security.outputs.scannerIdentityId
   clientId: security.outputs.scannerIdentityClientId

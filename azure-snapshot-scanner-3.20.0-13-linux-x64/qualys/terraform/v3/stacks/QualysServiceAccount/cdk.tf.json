@@ -1,0 +1,2827 @@
+{
+  "//": {
+    "metadata": {
+      "backend": "local",
+      "overrides": {
+        "azurerm_function_app_flex_consumption": [
+          "site_config",
+          "app_settings"
+        ]
+      },
+      "stackName": "QualysServiceAccount",
+      "version": "0.21.0"
+    },
+    "outputs": {
+    }
+  },
+  "data": {
+    "azurerm_client_config": {
+      "Security_AzClientConfig_4876317B": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/AzClientConfig",
+            "uniqueId": "Security_AzClientConfig_4876317B"
+          }
+        }
+      }
+    },
+    "azurerm_managed_api": {
+      "ApiConnection_AzArmApi_C1AE3CEC": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ApiConnection/AzArmApi",
+            "uniqueId": "ApiConnection_AzArmApi_C1AE3CEC"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "arm"
+      }
+    },
+    "azurerm_role_definition": {
+      "BlobDataOwner": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/BlobDataOwner",
+            "uniqueId": "BlobDataOwner"
+          }
+        },
+        "name": "Storage Blob Data Owner",
+        "scope": "${azurerm_storage_account.StorageAccount.id}"
+      },
+      "BlobDataOwnerForLogicApp": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/BlobDataOwnerForLogicApp",
+            "uniqueId": "BlobDataOwnerForLogicApp"
+          }
+        },
+        "name": "Storage Blob Data Contributor",
+        "scope": "${azurerm_storage_account.StorageAccount.id}"
+      }
+    },
+    "azurerm_storage_account_blob_container_sas": {
+      "AzFnV3_BlobSASV3_09A9E793": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/BlobSASV3",
+            "uniqueId": "AzFnV3_BlobSASV3_09A9E793"
+          }
+        },
+        "connection_string": "${azurerm_storage_account.StorageAccount.primary_connection_string}",
+        "container_name": "${azurerm_storage_container.StorageContainerV3.name}",
+        "expiry": "2030-12-31",
+        "https_only": true,
+        "permissions": {
+          "add": false,
+          "create": false,
+          "delete": false,
+          "list": false,
+          "read": true,
+          "write": false
+        },
+        "start": "2025-01-01"
+      }
+    },
+    "azurerm_subscription": {
+      "CurrentSubscription": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/CurrentSubscription",
+            "uniqueId": "CurrentSubscription"
+          }
+        }
+      }
+    },
+    "http": {
+      "VirtualNetwork_MyIpAddress_B83F8A5E": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/MyIpAddress",
+            "uniqueId": "VirtualNetwork_MyIpAddress_B83F8A5E"
+          }
+        },
+        "url": "https://api.ipify.org"
+      }
+    }
+  },
+  "provider": {
+    "azapi": [
+      {
+      }
+    ],
+    "azurerm": [
+      {
+        "client_id": "",
+        "client_secret": "",
+        "features": [
+          {
+            "key_vault": [
+              {
+                "purge_soft_delete_on_destroy": true
+              }
+            ],
+            "resource_group": [
+              {
+                "prevent_deletion_if_contains_resources": false
+              }
+            ]
+          }
+        ],
+        "skip_provider_registration": true,
+        "subscription_id": "",
+        "tenant_id": "",
+        "use_cli": false
+      }
+    ],
+    "http": [
+      {
+      }
+    ],
+    "random": [
+      {
+      }
+    ],
+    "time": [
+      {
+      }
+    ]
+  },
+  "resource": {
+    "azapi_resource": {
+      "ApiConnection_ArmApiConnectionRaw_2FBF035F": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ApiConnection/ArmApiConnectionRaw",
+            "uniqueId": "ApiConnection_ArmApiConnectionRaw_2FBF035F"
+          }
+        },
+        "body": {
+          "properties": {
+            "alternativeParameterValues": {
+            },
+            "api": {
+              "id": "${data.azurerm_managed_api.ApiConnection_AzArmApi_C1AE3CEC.id}",
+              "type": "Microsoft.Web/locations/managedApis"
+            },
+            "displayName": "qualys-api-connection-arm",
+            "parameterValueType": "Alternative"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-api-connection-arm",
+        "parent_id": "${azurerm_resource_group.ResourceGroup.id}",
+        "schema_validation_enabled": false,
+        "type": "Microsoft.Web/connections@2016-06-01"
+      }
+    },
+    "azapi_update_resource": {
+      "ModifyExistingTopic": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ModifyExistingTopic",
+            "uniqueId": "ModifyExistingTopic"
+          }
+        },
+        "body": {
+          "identity": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": "${zipmap([azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id], [{}])}"
+          }
+        },
+        "for_each": "${tomap(var.EventBasedDiscovery ? var.SystemEventTopics : {})}",
+        "name": "${each.value}",
+        "parent_id": "${format(\"/subscriptions/%s/resourceGroups/Default-EventGrid\", each.key)}",
+        "type": "Microsoft.EventGrid/systemTopics@2022-06-15"
+      }
+    },
+    "azurerm_application_insights": {
+      "AzFnV3_AppInsightsV3_518A50CE": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/AppInsightsV3",
+            "uniqueId": "AzFnV3_AppInsightsV3_518A50CE"
+          }
+        },
+        "application_type": "web",
+        "count": "${var.Debug ? 1 : 0}",
+        "location": "${var.Location}",
+        "name": "qualys-snapshot-scanner-insights-v3-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_cosmosdb_account": {
+      "Cosmosdb_Account_19997929": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/Account",
+            "uniqueId": "Cosmosdb_Account_19997929"
+          }
+        },
+        "access_key_metadata_writes_enabled": false,
+        "analytical_storage_enabled": false,
+        "automatic_failover_enabled": false,
+        "backup": {
+          "interval_in_minutes": 1440,
+          "retention_in_hours": 8,
+          "storage_redundancy": "Local",
+          "type": "Periodic"
+        },
+        "capabilities": [
+          {
+            "name": "EnableServerless"
+          }
+        ],
+        "capacity": {
+          "total_throughput_limit": -1
+        },
+        "consistency_policy": {
+          "consistency_level": "BoundedStaleness"
+        },
+        "default_identity_type": "${var.Debug ? null : join(\"=\", [\"UserAssignedIdentity\", azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id])}",
+        "geo_location": [
+          {
+            "failover_priority": 0,
+            "location": "${var.Location}",
+            "zone_redundant": false
+          }
+        ],
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "kind": "GlobalDocumentDB",
+        "local_authentication_disabled": "${var.Debug ? false : true}",
+        "location": "${var.Location}",
+        "name": "qualys-database-${random_integer.RandomNumber.id}",
+        "offer_type": "Standard",
+        "public_network_access_enabled": "${var.Debug ? true : false}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_cosmosdb_sql_container": {
+      "Cosmosdb_Config_43CA10B7": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/Config",
+            "uniqueId": "Cosmosdb_Config_43CA10B7"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "default_ttl": -1,
+        "name": "config",
+        "partition_key_paths": [
+          "/type"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "Cosmosdb_DiscoveryTasks_DC82C0F1": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/DiscoveryTasks",
+            "uniqueId": "Cosmosdb_DiscoveryTasks_DC82C0F1"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "default_ttl": 259200,
+        "indexing_policy": {
+          "composite_index": [
+            {
+              "index": [
+                {
+                  "order": "Ascending",
+                  "path": "/status"
+                },
+                {
+                  "order": "Ascending",
+                  "path": "/retry"
+                }
+              ]
+            },
+            {
+              "index": [
+                {
+                  "order": "Descending",
+                  "path": "/_ts"
+                },
+                {
+                  "order": "Descending",
+                  "path": "/priority"
+                }
+              ]
+            }
+          ],
+          "excluded_path": [
+            {
+              "path": "/*"
+            }
+          ],
+          "included_path": [
+          ],
+          "indexing_mode": "consistent"
+        },
+        "name": "tasks",
+        "partition_key_paths": [
+          "/workflow"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "Cosmosdb_EventLogs_7044F7D7": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/EventLogs",
+            "uniqueId": "Cosmosdb_EventLogs_7044F7D7"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "default_ttl": 604800,
+        "indexing_policy": {
+          "excluded_path": [
+            {
+              "path": "/*"
+            }
+          ],
+          "included_path": [
+          ],
+          "indexing_mode": "consistent"
+        },
+        "name": "event-logs",
+        "partition_key_paths": [
+          "/resource"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "Cosmosdb_InventoryScanStatus_A6D7B9D7": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/InventoryScanStatus",
+            "uniqueId": "Cosmosdb_InventoryScanStatus_A6D7B9D7"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "default_ttl": 86400,
+        "indexing_policy": {
+          "composite_index": [
+            {
+              "index": [
+                {
+                  "order": "Ascending",
+                  "path": "/resourceId"
+                },
+                {
+                  "order": "Ascending",
+                  "path": "/scanType"
+                }
+              ]
+            },
+            {
+              "index": [
+                {
+                  "order": "Ascending",
+                  "path": "/targetRegion"
+                },
+                {
+                  "order": "Ascending",
+                  "path": "/scannerPlatform"
+                }
+              ]
+            }
+          ],
+          "excluded_path": [
+            {
+              "path": "/*"
+            }
+          ],
+          "included_path": [
+          ],
+          "indexing_mode": "consistent"
+        },
+        "name": "inventory-scan-status",
+        "partition_key_paths": [
+          "/scanType"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "Cosmosdb_Leases_93A4CFDD": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/Leases",
+            "uniqueId": "Cosmosdb_Leases_93A4CFDD"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "indexing_policy": {
+          "excluded_path": [
+            {
+              "path": "/*"
+            }
+          ],
+          "included_path": [
+          ],
+          "indexing_mode": "consistent"
+        },
+        "name": "leases",
+        "partition_key_paths": [
+          "/id"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "Cosmosdb_ResourceInventory_57F09071": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/ResourceInventory",
+            "uniqueId": "Cosmosdb_ResourceInventory_57F09071"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "database_name": "${azurerm_cosmosdb_sql_database.Cosmosdb_Database_521E1F4C.name}",
+        "default_ttl": 86400,
+        "indexing_policy": {
+          "composite_index": [
+            {
+              "index": [
+                {
+                  "order": "Ascending",
+                  "path": "/state/\"?\""
+                },
+                {
+                  "order": "Descending",
+                  "path": "/retry/\"?\""
+                },
+                {
+                  "order": "Descending",
+                  "path": "/location/\"?\""
+                }
+              ]
+            }
+          ],
+          "excluded_path": [
+            {
+              "path": "/*"
+            }
+          ],
+          "included_path": [
+          ],
+          "indexing_mode": "consistent"
+        },
+        "name": "resource-inventory",
+        "partition_key_paths": [
+          "/location"
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      }
+    },
+    "azurerm_cosmosdb_sql_database": {
+      "Cosmosdb_Database_521E1F4C": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Cosmosdb/Database",
+            "uniqueId": "Cosmosdb_Database_521E1F4C"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "name": "scanner",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      }
+    },
+    "azurerm_cosmosdb_sql_role_assignment": {
+      "SubscriptionCosmosDbRoleAssignmentForFunctionApp": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionCosmosDbRoleAssignmentForFunctionApp",
+            "uniqueId": "SubscriptionCosmosDbRoleAssignmentForFunctionApp"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "depends_on": [
+          "azurerm_role_definition.SubscriptionAccountFnAppRole",
+          "azurerm_cosmosdb_account.Cosmosdb_Account_19997929"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "role_definition_id": "${azurerm_cosmosdb_sql_role_definition.SubscriptionCosmosDbRole.id}",
+        "scope": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.id}"
+      },
+      "SubscriptionCosmosDbRoleAssignmentForLogicApp": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionCosmosDbRoleAssignmentForLogicApp",
+            "uniqueId": "SubscriptionCosmosDbRoleAssignmentForLogicApp"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "depends_on": [
+          "azurerm_cosmosdb_sql_role_definition.SubscriptionCosmosDbRole",
+          "azurerm_cosmosdb_account.Cosmosdb_Account_19997929"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.principal_id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "role_definition_id": "${azurerm_cosmosdb_sql_role_definition.SubscriptionCosmosDbRole.id}",
+        "scope": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.id}"
+      }
+    },
+    "azurerm_cosmosdb_sql_role_definition": {
+      "SubscriptionCosmosDbRole": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionCosmosDbRole",
+            "uniqueId": "SubscriptionCosmosDbRole"
+          }
+        },
+        "account_name": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.name}",
+        "assignable_scopes": [
+          "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.id}"
+        ],
+        "name": "qualys-snapshot-scanner-service-db-role",
+        "permissions": [
+          {
+            "data_actions": [
+              "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+              "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*",
+              "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*"
+            ]
+          }
+        ],
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      }
+    },
+    "azurerm_eventgrid_event_subscription": {
+      "TargetAccountEventSubscription": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccountEventSubscription",
+            "uniqueId": "TargetAccountEventSubscription"
+          }
+        },
+        "advanced_filter": {
+          "string_in": [
+            {
+              "key": "data.operationName",
+              "values": [
+                "Microsoft.Compute/virtualMachines/write",
+                "Microsoft.Compute/virtualMachineScaleSets/write"
+              ]
+            }
+          ]
+        },
+        "delivery_identity": {
+          "type": "UserAssigned",
+          "user_assigned_identity": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}"
+        },
+        "depends_on": [
+          "azapi_update_resource.ModifyExistingTopic",
+          "time_sleep.TargetAccountEventSubscriptionSleep"
+        ],
+        "for_each": "${toset(tolist(var.EventBasedDiscovery ? var.TargetSubscriptionIds : []))}",
+        "included_event_types": [
+          "Microsoft.Resources.ResourceWriteSuccess"
+        ],
+        "name": "qualys-snapshot-scanner-vm-event-collector",
+        "scope": "${format(\"/subscriptions/%s\", each.value)}",
+        "service_bus_queue_endpoint_id": "${try(azurerm_servicebus_queue.Servicebus_EventsQueue_BA7AAE01[0].id, )}"
+      }
+    },
+    "azurerm_function_app_flex_consumption": {
+      "AzFnV3_FunctionAppV3_4ACAED16": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/FunctionAppV3",
+            "uniqueId": "AzFnV3_FunctionAppV3_4ACAED16"
+          }
+        },
+        "app_settings": {
+          "ALL_TAGS": "${join(\",\", var.MustHaveTags)}",
+          "ANY_TAGS": "${join(\",\", var.AtLeastOneTag)}",
+          "AZURE_CLIENT_ID": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.client_id}",
+          "AZURE_DB_CONNECTION_STRING": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.primary_sql_connection_string}",
+          "AZURE_DB_ENDPOINT": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.endpoint}",
+          "AZURE_RESOURCE_MANAGER_ENDPOINT": "https://management.azure.com",
+          "AzureWebJobsStorage": "${azurerm_storage_account.StorageAccount.primary_connection_string}",
+          "AzureWebJobsStorage__accountName": "${azurerm_storage_account.StorageAccount.name}",
+          "AzureWebJobsStorage__blobServiceUri": "${azurerm_storage_account.StorageAccount.primary_blob_endpoint}",
+          "AzureWebJobsStorage__clientId": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.client_id}",
+          "AzureWebJobsStorage__credential": "managedidentity",
+          "AzureWebJobsStorage__queueServiceUri": "${azurerm_storage_account.StorageAccount.primary_queue_endpoint}",
+          "AzureWebJobsStorage__tableServiceUri": "${azurerm_storage_account.StorageAccount.primary_table_endpoint}",
+          "DEPLOYMENT_STORAGE_CONNECTION_STRING": "${azurerm_storage_account.StorageAccount.primary_connection_string}",
+          "DES_NAME_PREFIX": "qualys-encryption-set",
+          "FILTER_VMS_SCANNED_IN_LAST": "4h",
+          "FUNCTIONS_EXTENSION_VERSION": "~4",
+          "GET_TARGET_SUBSCRIPTIONS_SIZE": "1000",
+          "KEY_NAME_PREFIX": "qualys-disk-key",
+          "KEY_VAULT_PREFIX": "qualysdisk",
+          "LOGIC_APP_NAMES": "qualys-app-syncer-v2-${random_integer.RandomNumber.id},qualys-function-app-syncer-${random_integer.RandomNumber.id},${azurerm_logic_app_workflow.AzLogicApps_qualys-delete-disks-82f8575465405108_A8BBAD4F.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-delete-nics-82f8575465405108_FDB3BD22.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-delete-public-ips-82f8575465405108_F788D2C1.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-delete-scanner-machines-82f8575465405108_C882B354.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-delete-snapshots-82f8575465405108_734CBDA1.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-concurrent-scanner-82f8575465405108_32B90517.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-find-scan-candidates-21e835239869a88b_5EEB89C4.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-create-disks-82f8575465405108_BA018B96.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-run-commands-82f8575465405108_0D527924.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-prepare-scanner-machine-82f8575465405108_CEB07E36.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-discover-resources-v2-91caae59b6297d33_49D8B59D.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-create-snapshots-v2-91caae59b6297d33_C9E96BF9.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-poll-based-discover-vms-v2-8fd1b172eef5e776_D52C08D1.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4_CFA56C66.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4_5637E36F.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-cleanup-resources-v2-d06096e098c109cf_DB6520EC.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-register-service-account-82f8575465405108_A66559E5.name},${azurerm_logic_app_workflow.AzLogicApps_qualys-deregister-service-account-82f8575465405108_7212C9FC.name}",
+          "MAX_SLEEP_SECONDS": "20",
+          "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
+          "MIN_SLEEP_SECONDS": "1",
+          "NONE_TAGS": "${join(\",\", var.NoneTags)}",
+          "POLL_INTERVAL": "${var.PollInterval}",
+          "QENDPOINT": "${var.QEndpoint}",
+          "QFLOW_DB_UPLOAD_PATH": "/qflow/azure-cosmosdb",
+          "QTOKEN": "${var.QToken}",
+          "RESOURCE_GROUP_NAME": "${azurerm_resource_group.ResourceGroup.name}",
+          "SAMPLING_GROUP_SCAN_PERCENTAGE": "${var.SamplingGroupScanPercentage}",
+          "SCAN_INTERVAL": "${var.ScanInterval}",
+          "SCAN_PAUSE_INTERVAL": "${var.ScannerPauseInterval}",
+          "SCAN_SAMPLING": "${var.ScanSampling}",
+          "SERVICE_BUS_CONNECTION_STRING": "${try(azurerm_servicebus_namespace.Servicebus_Namespace_FB13C556[0].default_primary_connection_string, \"\")}",
+          "SERVICE_BUS_QUEUE_NAME": "qualys-sb-events",
+          "SERVICE_SUBSCRIPTION_ID": "${data.azurerm_subscription.CurrentSubscription.subscription_id}",
+          "TARGET_CLOUD": "AzureCloud",
+          "TARGET_LOCATIONS": "${join(\",\", var.TargetLocations)}",
+          "TENANT_ID": "${data.azurerm_subscription.CurrentSubscription.tenant_id}",
+          "UNIQUE_ID": "${random_integer.RandomNumber.id}",
+          "WEBSITE_RUN_FROM_PACKAGE": "${azurerm_storage_account.StorageAccount.primary_blob_endpoint}${azurerm_storage_container.StorageContainerV3.name}/released-package.zip?${data.azurerm_storage_account_blob_container_sas.AzFnV3_BlobSASV3_09A9E793.sas}"
+        },
+        "auth_settings_v2": {
+          "active_directory_v2": {
+            "allowed_audiences": [
+              "https://management.azure.com"
+            ],
+            "client_id": "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.client_id}",
+            "client_secret_setting_name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
+            "tenant_auth_endpoint": "https://sts.windows.net/${data.azurerm_subscription.CurrentSubscription.tenant_id}"
+          },
+          "auth_enabled": true,
+          "default_provider": "AzureActiveDirectory",
+          "login": {
+            "token_store_enabled": true
+          },
+          "require_authentication": true,
+          "require_https": true,
+          "runtime_version": "~1",
+          "unauthenticated_action": "Return401"
+        },
+        "https_only": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "instance_memory_in_mb": 512,
+        "lifecycle": {
+          "ignore_changes": [
+            "tags"
+          ]
+        },
+        "location": "${var.Location}",
+        "maximum_instance_count": 40,
+        "name": "qualys-snapshot-scanner-v3-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "runtime_name": "node",
+        "runtime_version": "20",
+        "service_plan_id": "${azurerm_service_plan.AzFnV3_ServicePlanFC1_455B6341.id}",
+        "site_config": {
+          "application_insights_connection_string": "${try(azurerm_application_insights.AzFnV3_AppInsightsV3_518A50CE[0].connection_string, null)}",
+          "cors": {
+            "allowed_origins": [
+              "https://portal.azure.com"
+            ]
+          }
+        },
+        "sticky_settings": {
+          "app_setting_names": [
+            "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+          ]
+        },
+        "storage_authentication_type": "UserAssignedIdentity",
+        "storage_container_endpoint": "${azurerm_storage_account.StorageAccount.primary_blob_endpoint}${azurerm_storage_container.StorageContainerV3.name}",
+        "storage_container_type": "blobContainer",
+        "storage_user_assigned_identity_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "virtual_network_subnet_id": "${azurerm_subnet.VirtualNetwork_FunctionAppSubnet_72668FB2.id}"
+      }
+    },
+    "azurerm_key_vault": {
+      "Security_DiskKeyVault_4A1AFD56": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/DiskKeyVault",
+            "uniqueId": "Security_DiskKeyVault_4A1AFD56"
+          }
+        },
+        "access_policy": [
+          {
+            "application_id": null,
+            "certificate_permissions": null,
+            "key_permissions": [
+              "Get",
+              "List",
+              "Create",
+              "Update",
+              "WrapKey",
+              "UnwrapKey",
+              "SetRotationPolicy",
+              "GetRotationPolicy"
+            ],
+            "object_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+            "secret_permissions": null,
+            "storage_permissions": null,
+            "tenant_id": "${data.azurerm_subscription.CurrentSubscription.tenant_id}"
+          },
+          {
+            "application_id": null,
+            "certificate_permissions": null,
+            "key_permissions": [
+              "Get",
+              "List",
+              "Update",
+              "Create",
+              "Import",
+              "Delete",
+              "Recover",
+              "Backup",
+              "Restore",
+              "Decrypt",
+              "Encrypt",
+              "UnwrapKey",
+              "WrapKey",
+              "Verify",
+              "Sign",
+              "Purge",
+              "Release",
+              "Rotate",
+              "GetRotationPolicy",
+              "SetRotationPolicy"
+            ],
+            "object_id": "${data.azurerm_client_config.Security_AzClientConfig_4876317B.object_id}",
+            "secret_permissions": [
+              "Set"
+            ],
+            "storage_permissions": null,
+            "tenant_id": "${data.azurerm_client_config.Security_AzClientConfig_4876317B.tenant_id}"
+          }
+        ],
+        "depends_on": [
+          "azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43"
+        ],
+        "enabled_for_disk_encryption": true,
+        "for_each": "${toset(var.TargetLocations)}",
+        "location": "${each.value}",
+        "name": "qualysdisk${replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(each.value, \"east\", \"e\"), \"west\", \"w\"), \"south\", \"s\"), \"north\", \"n\"), \"central\", \"c\"), \"unitedstates\", \"us\"), \"australia\", \"au\"), \"europe\", \"eu\"), \"africa\", \"af\"), \"asia\", \"as\"), \"virginia\", \"vg\"), \"arizona\", \"ar\"), \"texas\", \"te\"), \"australia\", \"aus\"), \"austria\", \"aut\"), \"belgium\", \"bel\"), \"brazil\", \"bra\"), \"canada\", \"can\"), \"chile\", \"chl\"), \"china\", \"chn\"), \"denmark\", \"dnk\"), \"hongkong\", \" hkg\"), \"egypt\", \"egy\"), \"greece\", \"grc\"), \"finland\", \"fin\"), \"france\", \"fra\"), \"georgia\", \"geo\"), \"germany\", \"deu\"), \"india\", \"ind\"), \"indonesia\", \"idn\"), \"iran\", \"irn\"), \"iraq\", \"irq\"), \"ireland\", \"irl\"), \"israel\", \"isr\"), \"italy\", \"ita\"), \"japan\", \"jpn\"), \"korea\", \"kor\"), \"malaysia\", \"mys\"), \"mexico\", \"mex\"), \"netherlands\", \"nld\"), \"newzealand\", \"nzl\"), \"norway\", \"nor\"), \"poland\", \"pol\"), \"qatar\", \"qat\"), \"saudiarabia\", \"sau\"), \"singapore\", \"sgp\"), \"southafrica\", \"zaf\"), \"spain\", \"esp\"), \"srilanka\", \"lka\"), \"sweden\", \"swe\"), \"switzerland\", \"che\"), \"taiwan\", \"twn\")}${random_integer.RandomNumber.id}",
+        "network_acls": {
+          "bypass": "AzureServices",
+          "default_action": "Deny"
+        },
+        "public_network_access_enabled": false,
+        "purge_protection_enabled": true,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "sku_name": "standard",
+        "soft_delete_retention_days": 7,
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "tenant_id": "${data.azurerm_subscription.CurrentSubscription.tenant_id}"
+      }
+    },
+    "azurerm_logic_app_action_custom": {
+      "AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsFailIfFunctionAppNotHealthy",
+            "uniqueId": "AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA"
+          }
+        },
+        "body": "{\"type\":\"If\",\"expression\":{\"equals\":[\"@variables('FunctionAppHealthy')\",false]},\"actions\":{\"TriggerFunctionAppSyncer\":{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://management.azure.com/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Logic/workflows/qualys-function-app-syncer-${random_integer.RandomNumber.id}/triggers/Recurrence/run?api-version=2019-05-01\",\"headers\":{\"Content-Type\":\"application/json\"},\"method\":\"POST\",\"body\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"count\":3,\"interval\":\"PT60S\",\"type\":\"fixed\"}},\"limit\":{\"timeout\":\"PT600S\"},\"runAfter\":{}},\"TerminateWithFailure\":{\"type\":\"Terminate\",\"inputs\":{\"runStatus\":\"Failed\",\"runError\":{\"code\":\"500\",\"message\":\"The Function App did not reach a healthy state within the expected timeframe.\"}},\"runAfter\":{\"TriggerFunctionAppSyncer\":[\"Succeeded\",\"Failed\",\"TimedOut\",\"Skipped\"]}}},\"runAfter\":{\"WaitUntilFunctionAppCreate\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "FailIfFunctionAppNotHealthy"
+      },
+      "AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsGetVersionMapping",
+            "uniqueId": "AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B"
+          }
+        },
+        "body": "{\"type\":\"Http\",\"limit\":{\"timeout\":\"PT10S\"},\"inputs\":{\"uri\":\"${var.QEndpoint}/qflow/v1/version/mapping/azure-snapshot-scanner?version=@{variables('CurrentVersion')}\",\"headers\":{\"Authorization\":\"@{concat('Bearer ', base64ToString('${base64encode(var.QToken)}'))}\"},\"method\":\"GET\",\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{\"InitializeVersion\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeVersion_CAE09209"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "GetVersionMapping"
+      },
+      "AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsInitializeLogicAppsVariable",
+            "uniqueId": "AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B"
+          }
+        },
+        "body": "{\"type\":\"InitializeVariable\",\"inputs\":{\"variables\":[{\"name\":\"LogicApps\",\"type\":\"array\",\"value\":[\"qualys-delete-disks-82f8575465405108\",\"qualys-delete-nics-82f8575465405108\",\"qualys-delete-public-ips-82f8575465405108\",\"qualys-delete-scanner-machines-82f8575465405108\",\"qualys-delete-snapshots-82f8575465405108\",\"qualys-concurrent-scanner-82f8575465405108\",\"qualys-find-scan-candidates-21e835239869a88b\",\"qualys-create-disks-82f8575465405108\",\"qualys-run-commands-82f8575465405108\",\"qualys-prepare-scanner-machine-82f8575465405108\",\"qualys-discover-resources-v2-91caae59b6297d33\",\"qualys-create-snapshots-v2-91caae59b6297d33\",\"qualys-poll-based-discover-vms-v2-8fd1b172eef5e776\",\"qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4\",\"qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4\",\"qualys-cleanup-resources-v2-d06096e098c109cf\",\"qualys-register-service-account-82f8575465405108\",\"qualys-deregister-service-account-82f8575465405108\"]}]},\"runAfter\":{\"SyncKeyVault\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "InitializeLogicAppsVariable"
+      },
+      "AzAppSyncer_UpdateAppsInitializeVersion_CAE09209": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsInitializeVersion",
+            "uniqueId": "AzAppSyncer_UpdateAppsInitializeVersion_CAE09209"
+          }
+        },
+        "body": "{\"type\":\"InitializeVariable\",\"inputs\":{\"variables\":[{\"name\":\"CurrentVersion\",\"type\":\"string\",\"value\":\"3.20.0-13\"}]},\"runAfter\":{\"InitializeLogicAppsVariable\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "InitializeVersion"
+      },
+      "AzAppSyncer_UpdateAppsRegisterServiceAccount_64B4C309": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsRegisterServiceAccount",
+            "uniqueId": "AzAppSyncer_UpdateAppsRegisterServiceAccount_64B4C309"
+          }
+        },
+        "body": "{\"type\":\"Workflow\",\"inputs\":{\"host\":{\"workflow\":{\"id\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Logic/workflows/qualys-register-service-account-82f8575465405108-${random_integer.RandomNumber.id}\"},\"triggerName\":\"HttpTrigger\"},\"headers\":{\"content-type\":\"application/json\"},\"body\":{},\"retryPolicy\":{\"type\":\"none\"}},\"limit\":{\"timeout\":\"PT60S\"},\"runAfter\":{\"ShouldUpdateLogicApps\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeVersion_CAE09209",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsShouldUpdateLogicApps_EE7548BA"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "RegisterServiceAccount"
+      },
+      "AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsSetFunctionAppHealthyFlag",
+            "uniqueId": "AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6"
+          }
+        },
+        "body": "{\"type\":\"InitializeVariable\",\"inputs\":{\"variables\":[{\"name\":\"FunctionAppHealthy\",\"type\":\"boolean\",\"value\":false}]},\"runAfter\":{}}",
+        "depends_on": [
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "SetFunctionAppHealthyFlag"
+      },
+      "AzAppSyncer_UpdateAppsShouldUpdateLogicApps_EE7548BA": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsShouldUpdateLogicApps",
+            "uniqueId": "AzAppSyncer_UpdateAppsShouldUpdateLogicApps_EE7548BA"
+          }
+        },
+        "body": "{\"type\":\"If\",\"expression\":{\"and\":[{\"equals\":[\"@bool('${var.ShouldUpdateLogicApps}')\",\"@bool('true')\"]}]},\"actions\":{\"ForEachLogicApp\":{\"type\":\"Foreach\",\"foreach\":\"@variables('LogicApps')\",\"actions\":{\"GetLogicApp\":{\"type\":\"Http\",\"limit\":{\"timeout\":\"PT10S\"},\"inputs\":{\"uri\":\"${var.QEndpoint}/qflow/snapshot/v1/logicapps/@{items('ForEachLogicApp')}.json?version=@{body('GetVersionMapping')['version']}&isRelease=@{body('GetVersionMapping')['isRelease']}\",\"headers\":{\"Authorization\":\"@{concat('Bearer ', base64ToString('${base64encode(var.QToken)}'))}\"},\"method\":\"POST\",\"body\":{\"UNIQUE_DEPLOYMENT_ID\":\"${random_integer.RandomNumber.id}\",\"SERVICE_TENANT_ID\":\"${data.azurerm_subscription.CurrentSubscription.tenant_id}\",\"SUBSCRIPTION_ID\":\"${data.azurerm_subscription.CurrentSubscription.subscription_id}\",\"RESOURCE_GROUP_NAME\":\"${azurerm_resource_group.ResourceGroup.name}\",\"LOCATION\":\"${var.Location}\",\"QENDPOINT\":\"${var.QEndpoint}\",\"QTOKEN\":\"${base64encode(var.QToken)}\",\"APP_INSIGHTS_CONNECTION\":\"${try(azurerm_application_insights.AzFnV3_AppInsightsV3_518A50CE[0].connection_string, \"\")}\",\"SCAN_INTERVAL\":\"${var.ScanInterval}\",\"POLL_INTERVAL\":\"${var.PollInterval}\",\"SCANNER_PAUSE_INTERVAL\":\"${var.ScannerPauseInterval}\",\"CONCURRENCY\":\"${var.Concurrency}\",\"PER_LOCATION_CONCURRENCY\":\"${var.ConcurrentScannerMachines}\",\"NUMBER_OF_DISK_PER_VM\":\"${var.DisksPerVM}\",\"EVENT_LISTENER_CONCURRENCY\":\"${var.EventListenerConcurrency}\",\"BUILD_VERSION\":\"${var.BuildVersion}\",\"FUNCTION_APP_URL\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}\",\"TARGET_CLOUD\":\"AzureCloud\",\"AZURE_RESOURCE_MANAGER_ENDPOINT\":\"https://management.azure.com\",\"AZURE_WORKFLOW_SCHEMA_SUFFIX\":\"management.azure.com\"},\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{}},\"ParseBody\":{\"inputs\":{\"content\":\"@body('GetLogicApp')\",\"schema\":{}},\"runAfter\":{\"GetLogicApp\":[\"Succeeded\"]},\"type\":\"ParseJson\"},\"UpdateLogicApp\":{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}/api/arm/logic\",\"headers\":{\"Content-Type\":\"application/json\"},\"body\":{\"resource\":\"workflows\",\"method\":\"createOrUpdate\",\"parameters\":[\"qualys-snapshot-scanner\",\"@{items('ForEachLogicApp')}-${random_integer.RandomNumber.id}\",{\"definition\":\"@body('ParseBody')['definition']\",\"parameters\":\"@body('ParseBody')['parameters']\",\"tags\":\"@body('ParseBody')['tags']\",\"location\":\"${var.Location}\"}]},\"method\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{\"ParseBody\":[\"Succeeded\"]}},\"UpdateLogicAppForHighThroughPut\":{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}/api/client/service\",\"headers\":{\"Content-Type\":\"application/json\"},\"body\":{\"parameters\":\"@body('UpdateLogicApp')\"},\"method\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{\"UpdateLogicApp\":[\"Succeeded\"]}}},\"runtimeConfiguration\":{\"concurrency\":{\"repetitions\":4}},\"runAfter\":{}}},\"runAfter\":{\"GetVersionMapping\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeVersion_CAE09209",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "ShouldUpdateLogicApps"
+      },
+      "AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsSyncKeyVault",
+            "uniqueId": "AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB"
+          }
+        },
+        "body": "{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}/api/app/security\",\"headers\":{\"Content-Type\":\"application/json\"},\"body\":{},\"method\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"count\":1,\"interval\":\"PT60S\",\"type\":\"fixed\"}},\"runAfter\":{\"FailIfFunctionAppNotHealthy\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "SyncKeyVault"
+      },
+      "AzAppSyncer_UpdateAppsUpdateConfigs_49387439": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsUpdateConfigs",
+            "uniqueId": "AzAppSyncer_UpdateAppsUpdateConfigs_49387439"
+          }
+        },
+        "body": "{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}/api/app/config\",\"headers\":{\"Content-Type\":\"application/json\"},\"body\":{},\"method\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"count\":3,\"interval\":\"PT60S\",\"type\":\"fixed\"}},\"runAfter\":{\"RegisterServiceAccount\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeVersion_CAE09209",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsShouldUpdateLogicApps_EE7548BA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsRegisterServiceAccount_64B4C309"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "UpdateConfigs"
+      },
+      "AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsWaitUntilFunctionAppCreate",
+            "uniqueId": "AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190"
+          }
+        },
+        "body": "{\"type\":\"Until\",\"expression\":\"@equals(variables('FunctionAppHealthy'), bool('true'))\",\"actions\":{\"FunctionAppHealthCheck\":{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.default_hostname}/api/health\",\"headers\":{\"Content-Type\":\"application/json\"},\"method\":\"GET\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{}},\"SetFunctionAppHealthyToTrue\":{\"type\":\"SetVariable\",\"inputs\":{\"name\":\"FunctionAppHealthy\",\"value\":\"@equals(outputs('FunctionAppHealthCheck')['statusCode'], 200)\"},\"runAfter\":{\"FunctionAppHealthCheck\":[\"Succeeded\",\"Failed\",\"TimedOut\",\"Skipped\"]}},\"RestartFunctionAppIfNotHealthy\":{\"type\":\"If\",\"expression\":{\"equals\":[\"@variables('FunctionAppHealthy')\",false]},\"actions\":{\"RestartFunctionApp\":{\"type\":\"Http\",\"inputs\":{\"uri\":\"https://management.azure.com/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Web/sites/${azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16.name}/restart?api-version=2022-03-01\",\"headers\":{\"Content-Type\":\"application/json\"},\"method\":\"POST\",\"body\":\"POST\",\"authentication\":{\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"type\":\"ManagedServiceIdentity\"},\"retryPolicy\":{\"count\":3,\"interval\":\"PT60S\",\"type\":\"fixed\"}},\"limit\":{\"timeout\":\"PT600S\"},\"runAfter\":{}},\"Wait\":{\"type\":\"Wait\",\"inputs\":{\"interval\":{\"count\":60,\"unit\":\"Second\"}},\"runAfter\":{\"RestartFunctionApp\":[\"Succeeded\",\"Failed\",\"TimedOut\",\"Skipped\"]}}},\"runAfter\":{\"SetFunctionAppHealthyToTrue\":[\"Succeeded\"]}}},\"limit\":{\"count\":10,\"timeout\":\"PT600S\"},\"runAfter\":{\"SetFunctionAppHealthyFlag\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "WaitUntilFunctionAppCreate"
+      },
+      "AzUploadZipLogicApp_UploadZipGetZipContent_62AE5044": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzUploadZipLogicApp/UploadZipGetZipContent",
+            "uniqueId": "AzUploadZipLogicApp_UploadZipGetZipContent_62AE5044"
+          }
+        },
+        "body": "{\"type\":\"Http\",\"limit\":{\"timeout\":\"PT60S\"},\"inputs\":{\"uri\":\"${var.QEndpoint}/qflow/snapshot/v2/azure-snapshot-scanner-3.20.0-13-functionapps.zip?format=binary&useCache=true\",\"headers\":{\"Authorization\":\"@{concat('Bearer ', base64ToString('${base64encode(var.QToken)}'))}\"},\"method\":\"GET\",\"retryPolicy\":{\"type\":\"none\"}},\"runAfter\":{}}",
+        "depends_on": [
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzUploadZipLogicApp_UploadZip_056F7F53.id}",
+        "name": "GetZipContent"
+      },
+      "AzUploadZipLogicApp_UploadZipUploadToBlob_ED4385A9": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzUploadZipLogicApp/UploadZipUploadToBlob",
+            "uniqueId": "AzUploadZipLogicApp_UploadZipUploadToBlob_ED4385A9"
+          }
+        },
+        "body": "{\"type\":\"Http\",\"limit\":{\"timeout\":\"PT60S\"},\"inputs\":{\"uri\":\"https://${azurerm_storage_account.StorageAccount.name}.blob.core.windows.net/${azurerm_storage_container.StorageContainerV3.name}/released-package.zip\",\"headers\":{\"x-ms-blob-type\":\"BlockBlob\",\"x-ms-version\":\"2020-10-02\",\"x-ms-date\":\"@{utcNow('R')}\",\"Content-Type\":\"application/octet-stream\"},\"method\":\"PUT\",\"body\":\"@body('GetZipContent')\",\"authentication\":{\"type\":\"ManagedServiceIdentity\",\"identity\":\"/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}\",\"audience\":\"https://storage.azure.com/\"},\"retryPolicy\":{\"count\":3,\"interval\":\"PT60S\",\"type\":\"fixed\"}},\"runAfter\":{\"GetZipContent\":[\"Succeeded\"]}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzUploadZipLogicApp_UploadZipGetZipContent_62AE5044"
+        ],
+        "logic_app_id": "${azurerm_logic_app_workflow.AzUploadZipLogicApp_UploadZip_056F7F53.id}",
+        "name": "UploadToBlob"
+      }
+    },
+    "azurerm_logic_app_trigger_custom": {
+      "AzAppSyncer_UpdateAppsRecurrence_7B1C0B51": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateAppsRecurrence",
+            "uniqueId": "AzAppSyncer_UpdateAppsRecurrence_7B1C0B51"
+          }
+        },
+        "body": "{\"type\":\"Recurrence\",\"recurrence\":{\"frequency\":\"Minute\",\"interval\":60},\"runtimeConfiguration\":{\"concurrency\":{\"runs\":1}}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSetFunctionAppHealthyFlag_2B52AAB6",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsWaitUntilFunctionAppCreate_DA682190",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsFailIfFunctionAppNotHealthy_4A0D1DAA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsSyncKeyVault_49D425AB",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeLogicAppsVariable_E1C31A6B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsInitializeVersion_CAE09209",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsGetVersionMapping_F35F732B",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsShouldUpdateLogicApps_EE7548BA",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsRegisterServiceAccount_64B4C309",
+          "azurerm_logic_app_action_custom.AzAppSyncer_UpdateAppsUpdateConfigs_49387439"
+        ],
+        "lifecycle": {
+        },
+        "logic_app_id": "${azurerm_logic_app_workflow.AzAppSyncer_UpdateApps_8F1C0E3D.id}",
+        "name": "Recurrence"
+      },
+      "AzUploadZipLogicApp_UploadZipRecurrence_201FFA13": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzUploadZipLogicApp/UploadZipRecurrence",
+            "uniqueId": "AzUploadZipLogicApp_UploadZipRecurrence_201FFA13"
+          }
+        },
+        "body": "{\"type\":\"Recurrence\",\"recurrence\":{\"frequency\":\"Minute\",\"interval\":1440},\"runtimeConfiguration\":{\"concurrency\":{\"runs\":1}}}",
+        "depends_on": [
+          "azurerm_logic_app_action_custom.AzUploadZipLogicApp_UploadZipGetZipContent_62AE5044",
+          "azurerm_logic_app_action_custom.AzUploadZipLogicApp_UploadZipUploadToBlob_ED4385A9"
+        ],
+        "lifecycle": {
+        },
+        "logic_app_id": "${azurerm_logic_app_workflow.AzUploadZipLogicApp_UploadZip_056F7F53.id}",
+        "name": "Recurrence"
+      }
+    },
+    "azurerm_logic_app_workflow": {
+      "AzAppSyncer_UpdateApps_8F1C0E3D": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzAppSyncer/UpdateApps",
+            "uniqueId": "AzAppSyncer_UpdateApps_8F1C0E3D"
+          }
+        },
+        "depends_on": [
+          "azurerm_function_app_flex_consumption.AzFnV3_FunctionAppV3_4ACAED16",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-delete-disks-82f8575465405108_A8BBAD4F",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-delete-nics-82f8575465405108_FDB3BD22",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-delete-public-ips-82f8575465405108_F788D2C1",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-delete-scanner-machines-82f8575465405108_C882B354",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-delete-snapshots-82f8575465405108_734CBDA1",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-concurrent-scanner-82f8575465405108_32B90517",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-find-scan-candidates-21e835239869a88b_5EEB89C4",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-create-disks-82f8575465405108_BA018B96",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-run-commands-82f8575465405108_0D527924",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-prepare-scanner-machine-82f8575465405108_CEB07E36",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-discover-resources-v2-91caae59b6297d33_49D8B59D",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-create-snapshots-v2-91caae59b6297d33_C9E96BF9",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-poll-based-discover-vms-v2-8fd1b172eef5e776_D52C08D1",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4_CFA56C66",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4_5637E36F",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-cleanup-resources-v2-d06096e098c109cf_DB6520EC",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-register-service-account-82f8575465405108_A66559E5",
+          "azurerm_logic_app_workflow.AzLogicApps_qualys-deregister-service-account-82f8575465405108_7212C9FC",
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-app-syncer-v2-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-cleanup-resources-v2-d06096e098c109cf_DB6520EC": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-cleanup-resources-v2-d06096e098c109cf",
+            "uniqueId": "AzLogicApps_qualys-cleanup-resources-v2-d06096e098c109cf_DB6520EC"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-cleanup-resources-v2-d06096e098c109cf-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-concurrent-scanner-82f8575465405108_32B90517": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-concurrent-scanner-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-concurrent-scanner-82f8575465405108_32B90517"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-concurrent-scanner-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-create-disks-82f8575465405108_BA018B96": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-create-disks-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-create-disks-82f8575465405108_BA018B96"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-create-disks-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-create-snapshots-v2-91caae59b6297d33_C9E96BF9": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-create-snapshots-v2-91caae59b6297d33",
+            "uniqueId": "AzLogicApps_qualys-create-snapshots-v2-91caae59b6297d33_C9E96BF9"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-create-snapshots-v2-91caae59b6297d33-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-delete-disks-82f8575465405108_A8BBAD4F": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-delete-disks-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-delete-disks-82f8575465405108_A8BBAD4F"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-delete-disks-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-delete-nics-82f8575465405108_FDB3BD22": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-delete-nics-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-delete-nics-82f8575465405108_FDB3BD22"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-delete-nics-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-delete-public-ips-82f8575465405108_F788D2C1": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-delete-public-ips-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-delete-public-ips-82f8575465405108_F788D2C1"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-delete-public-ips-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-delete-scanner-machines-82f8575465405108_C882B354": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-delete-scanner-machines-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-delete-scanner-machines-82f8575465405108_C882B354"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-delete-scanner-machines-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-delete-snapshots-82f8575465405108_734CBDA1": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-delete-snapshots-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-delete-snapshots-82f8575465405108_734CBDA1"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-delete-snapshots-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4_5637E36F": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4",
+            "uniqueId": "AzLogicApps_qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4_5637E36F"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-demand-based-discover-vms-v2-8d4a5ddd03aadee4-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-deregister-service-account-82f8575465405108_7212C9FC": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-deregister-service-account-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-deregister-service-account-82f8575465405108_7212C9FC"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-deregister-service-account-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-discover-resources-v2-91caae59b6297d33_49D8B59D": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-discover-resources-v2-91caae59b6297d33",
+            "uniqueId": "AzLogicApps_qualys-discover-resources-v2-91caae59b6297d33_49D8B59D"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-discover-resources-v2-91caae59b6297d33-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4_CFA56C66": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4",
+            "uniqueId": "AzLogicApps_qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4_CFA56C66"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": "${tobool(var.EventBasedDiscovery)}",
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-event-based-discover-vms-v2-8d4a5ddd03aadee4-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-find-scan-candidates-21e835239869a88b_5EEB89C4": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-find-scan-candidates-21e835239869a88b",
+            "uniqueId": "AzLogicApps_qualys-find-scan-candidates-21e835239869a88b_5EEB89C4"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-find-scan-candidates-21e835239869a88b-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-poll-based-discover-vms-v2-8fd1b172eef5e776_D52C08D1": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-poll-based-discover-vms-v2-8fd1b172eef5e776",
+            "uniqueId": "AzLogicApps_qualys-poll-based-discover-vms-v2-8fd1b172eef5e776_D52C08D1"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-poll-based-discover-vms-v2-8fd1b172eef5e776-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-prepare-scanner-machine-82f8575465405108_CEB07E36": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-prepare-scanner-machine-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-prepare-scanner-machine-82f8575465405108_CEB07E36"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-prepare-scanner-machine-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-register-service-account-82f8575465405108_A66559E5": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-register-service-account-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-register-service-account-82f8575465405108_A66559E5"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-register-service-account-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzLogicApps_qualys-run-commands-82f8575465405108_0D527924": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzLogicApps/qualys-run-commands-82f8575465405108",
+            "uniqueId": "AzLogicApps_qualys-run-commands-82f8575465405108_0D527924"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF",
+          "azurerm_role_assignment.SubscriptionAccountRoleAssignmentForFunctionApp"
+        ],
+        "enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "lifecycle": {
+          "ignore_changes": "all"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-run-commands-82f8575465405108-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      },
+      "AzUploadZipLogicApp_UploadZip_056F7F53": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzUploadZipLogicApp/UploadZip",
+            "uniqueId": "AzUploadZipLogicApp_UploadZip_056F7F53"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_assignment.ServiceAccountLogicApp_RoleAssignment_73086DFF"
+        ],
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "location": "${var.Location}",
+        "name": "qualys-function-app-syncer-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "workflow_schema": "https://schema.{{AZURE_WORKFLOW_SCHEMA_SUFFIX}}/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+      }
+    },
+    "azurerm_network_security_group": {
+      "VirtualNetwork_SecurityGroupService_B02FBEB2": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/SecurityGroupService",
+            "uniqueId": "VirtualNetwork_SecurityGroupService_B02FBEB2"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-network-security-group",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "security_rule": [
+          {
+            "access": "Allow",
+            "description": null,
+            "destination_address_prefix": "VirtualNetwork",
+            "destination_address_prefixes": null,
+            "destination_application_security_group_ids": null,
+            "destination_port_range": "*",
+            "destination_port_ranges": null,
+            "direction": "Inbound",
+            "name": "AllowLogicApps",
+            "priority": 110,
+            "protocol": "Tcp",
+            "source_address_prefix": "LogicApps",
+            "source_address_prefixes": null,
+            "source_application_security_group_ids": null,
+            "source_port_range": "*",
+            "source_port_ranges": null
+          },
+          {
+            "access": "Allow",
+            "description": null,
+            "destination_address_prefix": "VirtualNetwork",
+            "destination_address_prefixes": null,
+            "destination_application_security_group_ids": null,
+            "destination_port_range": "*",
+            "destination_port_ranges": null,
+            "direction": "Outbound",
+            "name": "AllowAzureAppService",
+            "priority": 120,
+            "protocol": "*",
+            "source_address_prefix": "*",
+            "source_address_prefixes": null,
+            "source_application_security_group_ids": null,
+            "source_port_range": "*",
+            "source_port_ranges": null
+          }
+        ],
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "VirtualNetwork_SecurityGroup_D6BEA3EB": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/SecurityGroup",
+            "uniqueId": "VirtualNetwork_SecurityGroup_D6BEA3EB"
+          }
+        },
+        "for_each": "${toset(var.TargetLocations)}",
+        "location": "${each.value}",
+        "name": "qualys-network-security-group-${each.value}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "security_rule": [
+          {
+            "access": "Allow",
+            "description": null,
+            "destination_address_prefix": "VirtualNetwork",
+            "destination_address_prefixes": null,
+            "destination_application_security_group_ids": null,
+            "destination_port_range": "8000",
+            "destination_port_ranges": null,
+            "direction": "Inbound",
+            "name": "AllowLogicApps",
+            "priority": 110,
+            "protocol": "Tcp",
+            "source_address_prefix": "LogicApps",
+            "source_address_prefixes": null,
+            "source_application_security_group_ids": null,
+            "source_port_range": "*",
+            "source_port_ranges": null
+          }
+        ],
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_private_dns_zone": {
+      "AzFnV3_DBPrivateDNSZone_E032C32A": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/DBPrivateDNSZone",
+            "uniqueId": "AzFnV3_DBPrivateDNSZone_E032C32A"
+          }
+        },
+        "name": "privatelink.documents.azure.com",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "AzFnV3_PrivateDNSZone_596536C5": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/PrivateDNSZone",
+            "uniqueId": "AzFnV3_PrivateDNSZone_596536C5"
+          }
+        },
+        "name": "privatelink.blob.core.windows.net",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "Security_KVPrivateDNSZone_180F6254": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/KVPrivateDNSZone",
+            "uniqueId": "Security_KVPrivateDNSZone_180F6254"
+          }
+        },
+        "depends_on": [
+          "azurerm_key_vault.Security_DiskKeyVault_4A1AFD56"
+        ],
+        "name": "privatelink.vaultcore.azure.net",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_private_dns_zone_virtual_network_link": {
+      "AzFnV3_BlobVirtualNetworkLink_19ADE9E8": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/BlobVirtualNetworkLink",
+            "uniqueId": "AzFnV3_BlobVirtualNetworkLink_19ADE9E8"
+          }
+        },
+        "depends_on": [
+          "azurerm_private_dns_zone.AzFnV3_PrivateDNSZone_596536C5"
+        ],
+        "name": "blob-virtual-link-${random_integer.RandomNumber.id}",
+        "private_dns_zone_name": "${azurerm_private_dns_zone.AzFnV3_PrivateDNSZone_596536C5.name}",
+        "registration_enabled": false,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "virtual_network_id": "${azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078.id}"
+      },
+      "AzFnV3_DBVirtualNetworkLink_E7EF0FFF": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/DBVirtualNetworkLink",
+            "uniqueId": "AzFnV3_DBVirtualNetworkLink_E7EF0FFF"
+          }
+        },
+        "depends_on": [
+          "azurerm_private_dns_zone.AzFnV3_DBPrivateDNSZone_E032C32A"
+        ],
+        "name": "db-virtual-link-${random_integer.RandomNumber.id}",
+        "private_dns_zone_name": "${azurerm_private_dns_zone.AzFnV3_DBPrivateDNSZone_E032C32A.name}",
+        "registration_enabled": false,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "virtual_network_id": "${azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078.id}"
+      },
+      "Security_KVDVirtualNetworkLink_A74D7EF4": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/KVDVirtualNetworkLink",
+            "uniqueId": "Security_KVDVirtualNetworkLink_A74D7EF4"
+          }
+        },
+        "depends_on": [
+          "azurerm_key_vault.Security_DiskKeyVault_4A1AFD56",
+          "azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254"
+        ],
+        "name": "qualys-encryption-set-kv-virtual-link-${random_integer.RandomNumber.id}",
+        "private_dns_zone_name": "${azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254.name}",
+        "registration_enabled": false,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "virtual_network_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network"
+      },
+      "Security_KVVirtualNetworkLink_E5D1BFAA": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/KVVirtualNetworkLink",
+            "uniqueId": "Security_KVVirtualNetworkLink_E5D1BFAA"
+          }
+        },
+        "depends_on": [
+          "azurerm_key_vault.Security_DiskKeyVault_4A1AFD56",
+          "azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "name": "qualys-encryption-set-${each.value}-kv-virtual-link-${random_integer.RandomNumber.id}",
+        "private_dns_zone_name": "${azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254.name}",
+        "registration_enabled": false,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        },
+        "virtual_network_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network-${each.value}"
+      }
+    },
+    "azurerm_private_endpoint": {
+      "AzFnV3_DBPrivateEndpoint_FCF5F822": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/DBPrivateEndpoint",
+            "uniqueId": "AzFnV3_DBPrivateEndpoint_FCF5F822"
+          }
+        },
+        "depends_on": [
+          "azurerm_private_dns_zone_virtual_network_link.AzFnV3_DBVirtualNetworkLink_E7EF0FFF"
+        ],
+        "location": "${var.Location}",
+        "name": "dbendpoint-${random_integer.RandomNumber.id}",
+        "private_dns_zone_group": {
+          "name": "db-pe-dnszonegroup-${random_integer.RandomNumber.id}",
+          "private_dns_zone_ids": [
+            "${azurerm_private_dns_zone.AzFnV3_DBPrivateDNSZone_E032C32A.id}"
+          ]
+        },
+        "private_service_connection": {
+          "is_manual_connection": false,
+          "name": "db-pe-connection-${random_integer.RandomNumber.id}",
+          "private_connection_resource_id": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.id}",
+          "subresource_names": [
+            "sql"
+          ]
+        },
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "subnet_id": "${azurerm_subnet.VirtualNetwork_PrivateEndpointSubnet_CA33C365.id}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "AzFnV3_PrivateEndpoint_9172DBE0": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/PrivateEndpoint",
+            "uniqueId": "AzFnV3_PrivateEndpoint_9172DBE0"
+          }
+        },
+        "depends_on": [
+          "azurerm_private_dns_zone_virtual_network_link.AzFnV3_BlobVirtualNetworkLink_19ADE9E8"
+        ],
+        "location": "${var.Location}",
+        "name": "blobendpoint-${random_integer.RandomNumber.id}",
+        "private_dns_zone_group": {
+          "name": "blob-pe-dnszonegroup-${random_integer.RandomNumber.id}",
+          "private_dns_zone_ids": [
+            "${azurerm_private_dns_zone.AzFnV3_PrivateDNSZone_596536C5.id}"
+          ]
+        },
+        "private_service_connection": {
+          "is_manual_connection": false,
+          "name": "blobl-pe-connection-${random_integer.RandomNumber.id}",
+          "private_connection_resource_id": "${azurerm_storage_account.StorageAccount.id}",
+          "subresource_names": [
+            "blob"
+          ]
+        },
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "subnet_id": "${azurerm_subnet.VirtualNetwork_PrivateEndpointSubnet_CA33C365.id}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "Security_KVPrivateEndpoint_CAD279B3": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Security/KVPrivateEndpoint",
+            "uniqueId": "Security_KVPrivateEndpoint_CAD279B3"
+          }
+        },
+        "depends_on": [
+          "azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254",
+          "azurerm_private_dns_zone_virtual_network_link.Security_KVVirtualNetworkLink_E5D1BFAA",
+          "time_sleep.SecurityKeyVaultSleep"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "location": "${each.value}",
+        "name": "qualys-encryption-set-${each.value}-kvendpoint-${random_integer.RandomNumber.id}",
+        "private_dns_zone_group": {
+          "name": "qualys-encryption-set-${each.value}-kv-pe-dnszonegroup-${random_integer.RandomNumber.id}",
+          "private_dns_zone_ids": [
+            "${azurerm_private_dns_zone.Security_KVPrivateDNSZone_180F6254.id}"
+          ]
+        },
+        "private_service_connection": {
+          "is_manual_connection": false,
+          "name": "qualys-encryption-set-${each.value}-kv-pe-connection-${random_integer.RandomNumber.id}",
+          "private_connection_resource_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.KeyVault/vaults/qualysdisk${replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(each.value, \"east\", \"e\"), \"west\", \"w\"), \"south\", \"s\"), \"north\", \"n\"), \"central\", \"c\"), \"unitedstates\", \"us\"), \"australia\", \"au\"), \"europe\", \"eu\"), \"africa\", \"af\"), \"asia\", \"as\"), \"virginia\", \"vg\"), \"arizona\", \"ar\"), \"texas\", \"te\"), \"australia\", \"aus\"), \"austria\", \"aut\"), \"belgium\", \"bel\"), \"brazil\", \"bra\"), \"canada\", \"can\"), \"chile\", \"chl\"), \"china\", \"chn\"), \"denmark\", \"dnk\"), \"hongkong\", \" hkg\"), \"egypt\", \"egy\"), \"greece\", \"grc\"), \"finland\", \"fin\"), \"france\", \"fra\"), \"georgia\", \"geo\"), \"germany\", \"deu\"), \"india\", \"ind\"), \"indonesia\", \"idn\"), \"iran\", \"irn\"), \"iraq\", \"irq\"), \"ireland\", \"irl\"), \"israel\", \"isr\"), \"italy\", \"ita\"), \"japan\", \"jpn\"), \"korea\", \"kor\"), \"malaysia\", \"mys\"), \"mexico\", \"mex\"), \"netherlands\", \"nld\"), \"newzealand\", \"nzl\"), \"norway\", \"nor\"), \"poland\", \"pol\"), \"qatar\", \"qat\"), \"saudiarabia\", \"sau\"), \"singapore\", \"sgp\"), \"southafrica\", \"zaf\"), \"spain\", \"esp\"), \"srilanka\", \"lka\"), \"sweden\", \"swe\"), \"switzerland\", \"che\"), \"taiwan\", \"twn\")}${random_integer.RandomNumber.id}",
+          "subresource_names": [
+            "vault"
+          ]
+        },
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "subnet_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network-${each.value}/subnets/qualys-subnet-${each.value}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_resource_group": {
+      "ResourceGroup": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ResourceGroup",
+            "uniqueId": "ResourceGroup"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-snapshot-scanner",
+        "tags": {
+          "uniqueDeploymentId": "${random_integer.RandomNumber.id}"
+        }
+      }
+    },
+    "azurerm_role_assignment": {
+      "AssignBlobDataOwnerRole": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AssignBlobDataOwnerRole",
+            "uniqueId": "AssignBlobDataOwnerRole"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_definition.SubscriptionAccountFnAppRole",
+          "data.azurerm_role_definition.BlobDataOwner",
+          "time_sleep.SubscriptionAccountRoleSleep"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+        "role_definition_id": "${data.azurerm_role_definition.BlobDataOwner.id}",
+        "scope": "${azurerm_storage_account.StorageAccount.id}"
+      },
+      "AssignBlobDataOwnerRoleToLogicApp": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AssignBlobDataOwnerRoleToLogicApp",
+            "uniqueId": "AssignBlobDataOwnerRoleToLogicApp"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_definition.ServiceAccountLogicApp_Role_DDC86649",
+          "data.azurerm_role_definition.BlobDataOwnerForLogicApp",
+          "time_sleep.RoleSleep"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.principal_id}",
+        "role_definition_id": "${data.azurerm_role_definition.BlobDataOwnerForLogicApp.id}",
+        "scope": "${azurerm_storage_account.StorageAccount.id}"
+      },
+      "CosmosReaderRBAC": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/CosmosReaderRBAC",
+            "uniqueId": "CosmosReaderRBAC"
+          }
+        },
+        "principal_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+        "role_definition_name": "Cosmos DB Account Reader Role",
+        "scope": "${azurerm_cosmosdb_account.Cosmosdb_Account_19997929.id}"
+      },
+      "ServiceAccountLogicApp_RoleAssignment_73086DFF": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ServiceAccountLogicApp/RoleAssignment",
+            "uniqueId": "ServiceAccountLogicApp_RoleAssignment_73086DFF"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_definition.ServiceAccountLogicApp_Role_DDC86649",
+          "time_sleep.RoleSleep"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.ServiceAccountLogicApp_CustomerManagedIdentity_910CF263.principal_id}",
+        "role_definition_name": "${azurerm_role_definition.ServiceAccountLogicApp_Role_DDC86649.name}",
+        "scope": "/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "SubscriptionAccountRoleAssignmentForFunctionApp": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionAccountRoleAssignmentForFunctionApp",
+            "uniqueId": "SubscriptionAccountRoleAssignmentForFunctionApp"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_definition.SubscriptionAccountFnAppRole",
+          "time_sleep.SubscriptionAccountRoleSleep"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+        "role_definition_name": "${azurerm_role_definition.SubscriptionAccountFnAppRole.name}",
+        "scope": "${azurerm_resource_group.ResourceGroup.id}"
+      },
+      "TargetAccount_TargetAccountRoleAssignmentForSubscription_CEAED207": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccount/TargetAccountRoleAssignmentForSubscription",
+            "uniqueId": "TargetAccount_TargetAccountRoleAssignmentForSubscription_CEAED207"
+          }
+        },
+        "depends_on": [
+          "azurerm_role_definition.TargetAccount_TargetRole_1C515CDC",
+          "time_sleep.TargetAccountRoleSleep"
+        ],
+        "principal_id": "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.principal_id}",
+        "role_definition_name": "${azurerm_role_definition.TargetAccount_TargetRole_1C515CDC.name}",
+        "scope": "${var.TargetRoleBoundary}"
+      }
+    },
+    "azurerm_role_definition": {
+      "ServiceAccountLogicApp_Role_DDC86649": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ServiceAccountLogicApp/Role",
+            "uniqueId": "ServiceAccountLogicApp_Role_DDC86649"
+          }
+        },
+        "name": "qualys-snapshot-scanner-service-la-role-${random_integer.RandomNumber.id}",
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Compute/virtualMachines/read",
+              "Microsoft.Compute/virtualMachines/runCommand/action",
+              "Microsoft.Web/sites/restart/action",
+              "Microsoft.Logic/workflows/triggers/run/action"
+            ],
+            "data_actions": [
+              "Microsoft.ServiceBus/namespaces/messages/send/action",
+              "Microsoft.ServiceBus/namespaces/messages/receive/action"
+            ],
+            "not_actions": [
+            ]
+          }
+        ],
+        "scope": "/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "SubscriptionAccountFnAppRole": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionAccountFnAppRole",
+            "uniqueId": "SubscriptionAccountFnAppRole"
+          }
+        },
+        "name": "qualys-snapshot-scanner-service-fa-role-${random_integer.RandomNumber.id}",
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Compute/disks/beginGetAccess/action",
+              "Microsoft.Compute/disks/delete",
+              "Microsoft.Compute/disks/read",
+              "Microsoft.Compute/disks/write",
+              "Microsoft.Compute/images/read",
+              "Microsoft.Compute/snapshots/delete",
+              "Microsoft.Compute/snapshots/read",
+              "Microsoft.Compute/snapshots/write",
+              "Microsoft.Compute/virtualMachines/deallocate/action",
+              "Microsoft.Compute/virtualMachines/delete",
+              "Microsoft.Compute/virtualMachines/powerOff/action",
+              "Microsoft.Compute/virtualMachines/read",
+              "Microsoft.Compute/virtualMachines/runCommand/action",
+              "Microsoft.Compute/virtualMachines/start/action",
+              "Microsoft.Compute/virtualMachines/write",
+              "Microsoft.Logic/workflows/run/action",
+              "Microsoft.Logic/workflows/runs/read",
+              "Microsoft.Logic/workflows/runs/actions/read",
+              "Microsoft.Logic/workflows/write",
+              "Microsoft.Logic/workflows/disable/action",
+              "Microsoft.Network/networkInterfaces/delete",
+              "Microsoft.Network/networkInterfaces/effectiveNetworkSecurityGroups/action",
+              "Microsoft.Network/networkInterfaces/effectiveRouteTable/action",
+              "Microsoft.Network/networkInterfaces/join/action",
+              "Microsoft.Network/networkInterfaces/read",
+              "Microsoft.Network/networkInterfaces/write",
+              "Microsoft.Network/publicIPAddresses/delete",
+              "Microsoft.Network/publicIPAddresses/join/action",
+              "Microsoft.Network/publicIPAddresses/read",
+              "Microsoft.Network/publicIPAddresses/write",
+              "Microsoft.Network/virtualNetworks/subnets/join/action",
+              "Microsoft.Network/virtualNetworks/subnets/read",
+              "Microsoft.Storage/storageAccounts/blobServices/containers/*",
+              "Microsoft.Web/connections/join/action",
+              "Microsoft.Web/sites/functions/listSecrets/action",
+              "Microsoft.Compute/diskEncryptionSets/write",
+              "Microsoft.Compute/diskEncryptionSets/read",
+              "Microsoft.ServiceBus/*/queues/read",
+              "Microsoft.ServiceBus/*/topics/read",
+              "Microsoft.ServiceBus/*/topics/subscriptions/read",
+              "Microsoft.KeyVault/vaults/deploy/action",
+              "Microsoft.ManagedIdentity/userAssignedIdentities/assign/action"
+            ],
+            "data_actions": [
+              "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/*",
+              "Microsoft.ServiceBus/*/send/action",
+              "Microsoft.ServiceBus/*/receive/action"
+            ],
+            "not_actions": [
+            ]
+          }
+        ],
+        "scope": "/subscriptions/${data.azurerm_subscription.CurrentSubscription.subscription_id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "TargetAccount_TargetRole_1C515CDC": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccount/TargetRole",
+            "uniqueId": "TargetAccount_TargetRole_1C515CDC"
+          }
+        },
+        "name": "qualys-snapshot-scanner-target-role-${random_integer.RandomNumber.id}",
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Compute/virtualMachines/read",
+              "Microsoft.Compute/virtualMachineScaleSets/read",
+              "Microsoft.Compute/virtualMachineScaleSets/virtualMachines/read",
+              "Microsoft.Compute/diskEncryptionSets/read",
+              "Microsoft.Compute/disks/beginGetAccess/action",
+              "Microsoft.Compute/disks/read",
+              "Microsoft.Network/networkInterfaces/read",
+              "Microsoft.Compute/virtualMachineScaleSets/virtualMachines/networkInterfaces/read",
+              "Microsoft.Compute/virtualMachines/instanceView/read",
+              "Microsoft.Compute/virtualMachineScaleSets/virtualMachines/instanceView/read",
+              "Microsoft.Compute/galleries/images/read"
+            ],
+            "not_actions": [
+            ]
+          }
+        ],
+        "scope": "${var.TargetRoleBoundary}"
+      }
+    },
+    "azurerm_service_plan": {
+      "AzFnV3_ServicePlanFC1_455B6341": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/AzFnV3/ServicePlanFC1",
+            "uniqueId": "AzFnV3_ServicePlanFC1_455B6341"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-snapshot-scanner-v3-${random_integer.RandomNumber.id}",
+        "os_type": "Linux",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "sku_name": "FC1",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_servicebus_namespace": {
+      "Servicebus_Namespace_FB13C556": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Servicebus/Namespace",
+            "uniqueId": "Servicebus_Namespace_FB13C556"
+          }
+        },
+        "capacity": 0,
+        "count": "${var.EventBasedDiscovery ? 1 : 0}",
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "local_auth_enabled": true,
+        "location": "${var.Location}",
+        "minimum_tls_version": "1.2",
+        "name": "qualys-snapshot-scanner-${random_integer.RandomNumber.id}",
+        "public_network_access_enabled": true,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "sku": "Basic",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_servicebus_queue": {
+      "Servicebus_EventsQueue_BA7AAE01": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/Servicebus/EventsQueue",
+            "uniqueId": "Servicebus_EventsQueue_BA7AAE01"
+          }
+        },
+        "count": "${var.EventBasedDiscovery ? 1 : 0}",
+        "name": "qualys-sb-events",
+        "namespace_id": "${try(azurerm_servicebus_namespace.Servicebus_Namespace_FB13C556[0].id, )}"
+      }
+    },
+    "azurerm_storage_account": {
+      "StorageAccount": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/StorageAccount",
+            "uniqueId": "StorageAccount"
+          }
+        },
+        "access_tier": "Hot",
+        "account_kind": "StorageV2",
+        "account_replication_type": "LRS",
+        "account_tier": "Standard",
+        "allow_nested_items_to_be_public": false,
+        "blob_properties": {
+        },
+        "https_traffic_only_enabled": true,
+        "identity": {
+          "identity_ids": [
+            "${azurerm_user_assigned_identity.TargetAccount_CustomerManagedIdentity_3AD93F43.id}"
+          ],
+          "type": "UserAssigned"
+        },
+        "location": "${var.Location}",
+        "min_tls_version": "TLS1_2",
+        "name": "qualys${random_integer.RandomNumber.id}",
+        "public_network_access_enabled": false,
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_storage_container": {
+      "StorageContainerV3": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/StorageContainerV3",
+            "uniqueId": "StorageContainerV3"
+          }
+        },
+        "container_access_type": "private",
+        "name": "qualys-blob-container",
+        "storage_account_id": "${azurerm_storage_account.StorageAccount.id}"
+      }
+    },
+    "azurerm_subnet": {
+      "VirtualNetwork_FunctionAppSubnet_72668FB2": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/FunctionAppSubnet",
+            "uniqueId": "VirtualNetwork_FunctionAppSubnet_72668FB2"
+          }
+        },
+        "address_prefixes": [
+          "10.0.0.0/26"
+        ],
+        "delegation": [
+          {
+            "name": "delegation",
+            "service_delegation": {
+              "name": "Microsoft.App/environments"
+            }
+          }
+        ],
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078"
+        ],
+        "name": "qualys-subnet-function-app",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "service_endpoints": [
+          "Microsoft.AzureCosmosDB",
+          "Microsoft.ServiceBus",
+          "Microsoft.EventHub",
+          "Microsoft.Storage",
+          "Microsoft.Web",
+          "Microsoft.KeyVault"
+        ],
+        "virtual_network_name": "${azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078.name}"
+      },
+      "VirtualNetwork_PrivateEndpointSubnet_CA33C365": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/PrivateEndpointSubnet",
+            "uniqueId": "VirtualNetwork_PrivateEndpointSubnet_CA33C365"
+          }
+        },
+        "address_prefixes": [
+          "10.0.3.0/26"
+        ],
+        "delegation": [
+        ],
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078"
+        ],
+        "name": "qualys-subnet-private-endpoint",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "service_endpoints": [
+          "Microsoft.AzureCosmosDB",
+          "Microsoft.ServiceBus",
+          "Microsoft.EventHub",
+          "Microsoft.Storage",
+          "Microsoft.Web",
+          "Microsoft.KeyVault"
+        ],
+        "virtual_network_name": "${azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078.name}"
+      },
+      "VirtualNetwork_Subnet_2CB8EB32": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/Subnet",
+            "uniqueId": "VirtualNetwork_Subnet_2CB8EB32"
+          }
+        },
+        "address_prefixes": [
+          "10.1${index(var.TargetLocations, each.key)}.1.0/24"
+        ],
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_ByLocation_F6C20731"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "name": "qualys-subnet-${each.value}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "service_endpoints": [
+          "Microsoft.KeyVault"
+        ],
+        "virtual_network_name": "qualys-virtual-network-${each.value}"
+      }
+    },
+    "azurerm_subnet_network_security_group_association": {
+      "VirtualNetwork_ByLocationSubnetNsg_E88B915F": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/ByLocationSubnetNsg",
+            "uniqueId": "VirtualNetwork_ByLocationSubnetNsg_E88B915F"
+          }
+        },
+        "depends_on": [
+          "azurerm_subnet.VirtualNetwork_Subnet_2CB8EB32"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "network_security_group_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/networkSecurityGroups/qualys-network-security-group-${each.value}",
+        "subnet_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network-${each.value}/subnets/qualys-subnet-${each.value}"
+      },
+      "VirtualNetwork_NetworkSecurityGroupServiceDefault_D4F6B713": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/NetworkSecurityGroupServiceDefault",
+            "uniqueId": "VirtualNetwork_NetworkSecurityGroupServiceDefault_D4F6B713"
+          }
+        },
+        "depends_on": [
+          "azurerm_subnet.VirtualNetwork_FunctionAppSubnet_72668FB2"
+        ],
+        "network_security_group_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/networkSecurityGroups/${azurerm_network_security_group.VirtualNetwork_SecurityGroupService_B02FBEB2.name}",
+        "subnet_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/${azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078.name}/subnets/${azurerm_subnet.VirtualNetwork_FunctionAppSubnet_72668FB2.name}"
+      }
+    },
+    "azurerm_user_assigned_identity": {
+      "ServiceAccountLogicApp_CustomerManagedIdentity_910CF263": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/ServiceAccountLogicApp/CustomerManagedIdentity",
+            "uniqueId": "ServiceAccountLogicApp_CustomerManagedIdentity_910CF263"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-snapshot-scanner-service-cmi-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      },
+      "TargetAccount_CustomerManagedIdentity_3AD93F43": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccount/CustomerManagedIdentity",
+            "uniqueId": "TargetAccount_CustomerManagedIdentity_3AD93F43"
+          }
+        },
+        "location": "${var.Location}",
+        "name": "qualys-snapshot-scanner-target-cmi-${random_integer.RandomNumber.id}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}"
+      }
+    },
+    "azurerm_virtual_network": {
+      "VirtualNetwork_ByLocation_F6C20731": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/ByLocation",
+            "uniqueId": "VirtualNetwork_ByLocation_F6C20731"
+          }
+        },
+        "address_space": [
+          "10.1${index(var.TargetLocations, each.key)}.0.0/16"
+        ],
+        "depends_on": [
+          "azurerm_network_security_group.VirtualNetwork_SecurityGroup_D6BEA3EB"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "location": "${each.value}",
+        "name": "qualys-virtual-network-${each.value}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      },
+      "VirtualNetwork_VirtualNetworkService_DB4E8078": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/VirtualNetworkService",
+            "uniqueId": "VirtualNetwork_VirtualNetworkService_DB4E8078"
+          }
+        },
+        "address_space": [
+          "10.0.0.0/20"
+        ],
+        "depends_on": [
+          "azurerm_network_security_group.VirtualNetwork_SecurityGroupService_B02FBEB2"
+        ],
+        "location": "${var.Location}",
+        "name": "qualys-virtual-network",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "tags": {
+          "App": "qualys-snapshot-scanner",
+          "AppVersion": "3.20.0",
+          "Name": "Qualys Snapshot Scanner"
+        }
+      }
+    },
+    "azurerm_virtual_network_peering": {
+      "VirtualNetwork_VirtualNetworkBiPeering_7E7AA259": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/VirtualNetworkBiPeering",
+            "uniqueId": "VirtualNetwork_VirtualNetworkBiPeering_7E7AA259"
+          }
+        },
+        "allow_forwarded_traffic": false,
+        "allow_gateway_transit": false,
+        "allow_virtual_network_access": true,
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_ByLocation_F6C20731",
+          "azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078",
+          "time_sleep.VNetPeerSleep"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "name": "qualys-virtual-network-${each.value}-bi-peering",
+        "remote_virtual_network_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "use_remote_gateways": false,
+        "virtual_network_name": "qualys-virtual-network-${each.value}"
+      },
+      "VirtualNetwork_VirtualNetworkPeering_A960824F": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VirtualNetwork/VirtualNetworkPeering",
+            "uniqueId": "VirtualNetwork_VirtualNetworkPeering_A960824F"
+          }
+        },
+        "allow_forwarded_traffic": true,
+        "allow_gateway_transit": true,
+        "allow_virtual_network_access": true,
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_ByLocation_F6C20731",
+          "azurerm_virtual_network.VirtualNetwork_VirtualNetworkService_DB4E8078",
+          "time_sleep.VNetPeerSleep"
+        ],
+        "for_each": "${toset(var.TargetLocations)}",
+        "name": "qualys-virtual-network-${each.value}-peering",
+        "remote_virtual_network_id": "${data.azurerm_subscription.CurrentSubscription.id}/resourceGroups/${azurerm_resource_group.ResourceGroup.name}/providers/Microsoft.Network/virtualNetworks/qualys-virtual-network-${each.value}",
+        "resource_group_name": "${azurerm_resource_group.ResourceGroup.name}",
+        "use_remote_gateways": false,
+        "virtual_network_name": "qualys-virtual-network"
+      }
+    },
+    "random_integer": {
+      "RandomNumber": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/RandomNumber",
+            "uniqueId": "RandomNumber"
+          }
+        },
+        "max": 9999999,
+        "min": 1000000
+      }
+    },
+    "time_sleep": {
+      "RoleSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/RoleSleep",
+            "uniqueId": "RoleSleep"
+          }
+        },
+        "create_duration": "300s",
+        "depends_on": [
+          "azurerm_role_definition.ServiceAccountLogicApp_Role_DDC86649"
+        ]
+      },
+      "SecurityKeyVaultSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SecurityKeyVaultSleep",
+            "uniqueId": "SecurityKeyVaultSleep"
+          }
+        },
+        "create_duration": "60s",
+        "depends_on": [
+          "azurerm_private_dns_zone_virtual_network_link.Security_KVVirtualNetworkLink_E5D1BFAA"
+        ]
+      },
+      "SubscriptionAccountRoleSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/SubscriptionAccountRoleSleep",
+            "uniqueId": "SubscriptionAccountRoleSleep"
+          }
+        },
+        "create_duration": "300s",
+        "depends_on": [
+          "azurerm_role_definition.SubscriptionAccountFnAppRole"
+        ]
+      },
+      "TargetAccountEventSubscriptionSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccountEventSubscriptionSleep",
+            "uniqueId": "TargetAccountEventSubscriptionSleep"
+          }
+        },
+        "count": "${var.EventBasedDiscovery ? 1 : 0}",
+        "create_duration": "300s",
+        "depends_on": [
+          "azapi_update_resource.ModifyExistingTopic"
+        ]
+      },
+      "TargetAccountRoleSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/TargetAccountRoleSleep",
+            "uniqueId": "TargetAccountRoleSleep"
+          }
+        },
+        "create_duration": "300s",
+        "depends_on": [
+          "azurerm_role_definition.TargetAccount_TargetRole_1C515CDC"
+        ]
+      },
+      "VNetPeerSleep": {
+        "//": {
+          "metadata": {
+            "path": "QualysServiceAccount/VNetPeerSleep",
+            "uniqueId": "VNetPeerSleep"
+          }
+        },
+        "create_duration": "60s",
+        "depends_on": [
+          "azurerm_virtual_network.VirtualNetwork_ByLocation_F6C20731"
+        ]
+      }
+    }
+  },
+  "terraform": {
+    "backend": {
+      "local": {
+        "path": "/home/jenkins/agent/workspace/_snapshot-scanner_release_3.20.0/terraform.QualysServiceAccount.tfstate"
+      }
+    },
+    "required_providers": {
+      "azapi": {
+        "source": "azure/azapi",
+        "version": "2.5.0"
+      },
+      "azurerm": {
+        "source": "azurerm",
+        "version": "4.33.0"
+      },
+      "http": {
+        "source": "http",
+        "version": "3.5.0"
+      },
+      "random": {
+        "source": "hashicorp/random",
+        "version": "3.7.2"
+      },
+      "time": {
+        "source": "hashicorp/time",
+        "version": "0.13.1"
+      }
+    }
+  },
+  "variable": {
+    "AtLeastOneTag": {
+      "default": [
+      ],
+      "description": "At least one tag from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, key=value,foo=bar,baz=true",
+      "type": "list(string)"
+    },
+    "BuildVersion": {
+      "default": "3.20.0-13",
+      "description": "Build Version",
+      "nullable": true,
+      "type": "string"
+    },
+    "Concurrency": {
+      "default": "5",
+      "description": "Provide the number of regions to be concurrently scanned. The value must be between 1 and 25.",
+      "type": "string"
+    },
+    "ConcurrentScannerMachines": {
+      "default": "1",
+      "description": "The number of scanner machines to execute scans on a single location. You can provide a value from 1 to 30 VMs. Consider the VMs to consume for scanning when allocating vCPU quotas in Azure storage. For Quotas allocations, refer to the Azure Quotas.",
+      "type": "string"
+    },
+    "Debug": {
+      "default": false,
+      "description": "Turn on to enable debug logging",
+      "type": "bool"
+    },
+    "DisksPerVM": {
+      "default": "16",
+      "description": "Number of disks allowed per VM (Scanner Machine)",
+      "type": "string"
+    },
+    "EventBasedDiscovery": {
+      "default": false,
+      "description": "Event based discovery can be controlled.",
+      "type": "bool"
+    },
+    "EventListenerConcurrency": {
+      "default": "5",
+      "description": "Set number of concurrent event listeners allowed.",
+      "type": "string"
+    },
+    "Location": {
+      "description": "The primary location for deploying all scanner-related resources.",
+      "type": "string"
+    },
+    "MustHaveTags": {
+      "description": "All tags from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, key=value,foo=bar,baz=true",
+      "type": "list(string)"
+    },
+    "NoneTags": {
+      "default": [
+      ],
+      "description": "No tag from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, key=value,foo=bar,baz=true",
+      "type": "list(string)"
+    },
+    "PollInterval": {
+      "default": "4",
+      "description": "The polling frequency where the scanner fetches all VMs from the target subscriptions to scan them at specified intervals. Provide a value between 1 hour to 24 hours.",
+      "type": "string"
+    },
+    "QEndpoint": {
+      "description": "The authentication token required for Qualys Endpoint.",
+      "type": "string"
+    },
+    "QToken": {
+      "description": "Provide the Qualys subscription token. Follow the steps mentioned in the online help to generate SubscriptionToken.",
+      "type": "string"
+    },
+    "QualysTags": {
+      "default": [
+      ],
+      "description": "QualysTags",
+      "type": "list(string)"
+    },
+    "SamplingGroupScanPercentage": {
+      "default": "10",
+      "description": "Sampling Group Scan Percentage",
+      "type": "string"
+    },
+    "ScanInterval": {
+      "default": "24",
+      "description": "The scan frequency where the scanner perform scans on an individual VM at the specified interval. Provide a value between 1 hour and 720 hours (30 days).",
+      "type": "string"
+    },
+    "ScanSampling": {
+      "default": false,
+      "description": "Scan Sampling can be controlled.",
+      "type": "bool"
+    },
+    "ScannerPauseInterval": {
+      "default": "10",
+      "description": "The period where the scanner waits for the specified number of minutes before executing a scan on the discovered VMs. The scanner will be paused for a designated period to accommodate new VMs for scanning. Provide a value between 1 minute to 30 minutes.",
+      "type": "string"
+    },
+    "ShouldUpdateLogicApps": {
+      "default": true,
+      "description": "Turn off to disable auto updation of logic apps",
+      "type": "bool"
+    },
+    "SystemEventTopics": {
+      "type": "map(string)"
+    },
+    "TargetCloud": {
+      "default": "AzureCloud",
+      "description": "Target Cloud e.g. AzureCloud, AzureUSGovernment etc.",
+      "type": "string"
+    },
+    "TargetLocations": {
+      "description": "The list of Azure locations the discovered VMs must belong to. Provide each value in quotes and separated by commas.",
+      "type": "list(string)"
+    },
+    "TargetRoleBoundary": {
+      "default": "",
+      "description": "Id of the root object where we will create the role",
+      "type": "string"
+    },
+    "TargetSubscriptionIds": {
+      "default": [
+      ],
+      "description": "List of target subscription Ids",
+      "type": "list(string)"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "Scanner account details": [
+    {
+      "key": "TenantID",
+      "label": "Tenant ID",
+      "description": "Obtain the Tenant ID from the Azure portal.",
+      "value": ""
+    },
+    {
+      "key": "SubscriptionID",
+      "label": "Scanner account subscription ID",
+      "description": "Azure subscription ID for deploying Terraform as a scanner account.",
+      "value": ""
+    },
+    {
+      "key": "Location",
+      "label": "Scanner account preferred location",
+      "description": "The primary location for deploying all scanner-related resources.",
+      "value": ""
+    }
+  ],
+  "Target account details": [
+    {
+      "key": "ManagementGroups",
+      "label": "Target account management groups",
+      "description": "Optional. The list of management group ids to be enabled for event based scanning. Provide each value in quotes and separated by commas. For example, [\"QF-3\", \"QF-2\", \"QF-1\"]",
+      "note": "This field is not required for the AzureUSGovernment cloud because event-based scanning is currently not supported in that environment.",
+      "value": []
+    },
+    {
+      "key": "Subscriptions",
+      "label": "Target account subscription IDs",
+      "description": "The list of subscription IDs to be enabled for event based scanning. Provide each value in quotes and separated by commas. For example, [\"d408f97e-xxxx-xxxx-xxx-50bbff759a5d\",\n    \"4f1f9d77-xxx-xxxx-xxxx-1393d18aa43e\"]",
+      "note": "This field is not required for the AzureUSGovernment cloud because event-based scanning is currently not supported in that environment.",
+      "value": []
+    },
+    {
+      "key": "Locations",
+      "label": "Target account locations",
+      "description": "The list of Azure locations the discovered VMs must belong to. Provide each value in quotes and separated by commas. For example, ['eastus', 'westus']",
+      "value": []
+    },
+    {
+      "key": "RoleBoundary",
+      "label": "Target role boundary",
+      "description": "Provide the subscription name to be scanned if the target is only a single subscription. Provide root Management Group ID if there are multiple subscriptions. For example, '/providers/Microsoft.Management/managementGroups/QUALYS'. This needs to be specified for both event or poll based scanning",
+      "value": "/providers/Microsoft.Management/managementGroups/"
+    }
+  ],
+  "Qualys parameters": [
+    {
+      "key": "APIGatewayURL",
+      "label": "API Gateway URL",
+      "description": "The URL of the Qualys endpoint where scanner reports will be shared or uploaded. Please refer https://www.qualys.com/platform-identification/",
+      "value": ""
+    },
+    {
+      "key": "SubscriptionToken",
+      "label": "Qualys endpoint token",
+      "description": "The authentication token required for Qualys Endpoint.",
+      "value": ""
+    }
+  ],
+  "VM Filter rules": [
+    {
+      "key": "MustHaveTagList",
+      "label": "Must have tags",
+      "description": "All tags from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, ['key=value', 'foo=bar', 'baz=true']",
+      "value": []
+    },
+    {
+      "key": "AtLeastOneInList",
+      "label": "At least one tag",
+      "description": "At least one tag from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, ['key=value', 'foo=bar', 'baz=true']",
+      "value": []
+    },
+    {
+      "key": "NoneInTheList",
+      "label": "None of the tag",
+      "description": "No tag from the list must be present and considered during VM discovery. Add multiple values in a comma-separated format. For example, ['key=value', 'foo=bar', 'baz=true']",
+      "value": []
+    }
+  ],
+  "Scanner settings": [
+    {
+      "key": "IntervalHours",
+      "label": "Scan interval (in hours)",
+      "description": "The scan frequency where the scanner perform scans on an individual VM at the specified interval. Provide a value between 24 hours (1 day) and 720 hours (30 days).",
+      "value": "24"
+    },
+    {
+      "key": "PollRetryInterval",
+      "label": "Poll interval (in hours)",
+      "description": "The polling frequency where the scanner fetches all VMs from the target subscriptions to scan them at specified intervals. Provide a value between 1 hour to 24 hours.",
+      "value": "4"
+    },
+    {
+      "key": "EventsBatchWindow",
+      "label": "Scanner pause interval (in minutes)",
+      "description": "The period where the scanner waits for the specified number of minutes before executing a scan on the discovered VMs. The scanner will be paused for a designated period to accommodate new VMs for scanning. Provide a value between 5 minutes to 720 minutes.",
+      "value": "10"
+    },
+    {
+      "key": "Concurrency",
+      "label": "Location Concurrency",
+      "description": "Provide the number of locations to be concurrently scanned. The value must be between 1 and 25",
+      "value": "5"
+    },
+    {
+      "key": "SingleLocationConcurrency",
+      "label": "Number of concurrent scanner machines per location",
+      "description": "The number of scanner machines to execute scans on a single location. You can provide a value from 1 to 30 VMs. Consider the VMs to consume for scanning when allocating vCPU quotas in Azure storage. For Quotas allocations, refer to the Azure Quotas documentation.",
+      "value": "1"
+    },
+    {
+      "key": "EventBasedDiscovery",
+      "label": "Event Based Discovery",
+      "description": "When enabled, ephemeral VMs are automatically captured and scanned.",
+      "value": "enabled"
+    },
+    {
+      "key": "ScanSampling",
+      "label": "Scan Sampling",
+      "description": "Select 'enabled' to use scan sampling, which involves selecting and analyzing a subset of VMs from a larger population to make inferences about the VMSS.",
+      "value": "disabled"
+    },
+    {
+      "key": "SamplingGroupScanPercentage",
+      "label": "Sampling Group Scan Percentage",
+      "description": "Provide the percentage to execute scans on sampling group VMSS. The value must be between 1 and 50.",
+      "value": "10"
+    }
+  ]
+}

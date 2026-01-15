@@ -1,0 +1,5 @@
+# Bootstrap local state - OK to keep locally, don't commit
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl

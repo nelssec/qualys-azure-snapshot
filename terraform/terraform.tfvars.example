@@ -1,0 +1,163 @@
+# =============================================================================
+# Qualys Azure Snapshot Scanner - Terraform Variables
+# =============================================================================
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars to version control!
+#
+# For the Qualys token, use environment variable:
+#   export TF_VAR_qualys_subscription_token="your-token"
+# =============================================================================
+
+# =============================================================================
+# SCANNER ACCOUNT DETAILS
+# =============================================================================
+# Equivalent to "Scanner account details" in user-config.json
+# Note: TenantID is auto-detected from your Azure CLI login
+# =============================================================================
+
+# Azure subscription ID for deploying scanner resources
+# Original: SubscriptionID
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Primary location for deploying all scanner-related resources
+# Original: Location
+location = "eastus"
+
+# Resource group name (new - was auto-generated before)
+resource_group_name = "rg-qualys-snapshot-scanner"
+
+# =============================================================================
+# TARGET ACCOUNT DETAILS
+# =============================================================================
+# Equivalent to "Target account details" in user-config.json
+# =============================================================================
+
+# List of subscription IDs to scan
+# Original: Subscriptions
+# Leave empty to scan only the scanner subscription
+target_subscription_ids = [
+  "00000000-0000-0000-0000-000000000000",
+  # "11111111-1111-1111-1111-111111111111",
+]
+
+# Azure regions where VMs should be discovered
+# Original: Locations
+target_locations = [
+  "eastus",
+  "westus2",
+]
+
+# Management group IDs for event-based scanning (optional)
+# Original: ManagementGroups
+# Not required for AzureUSGovernment
+target_management_groups = []
+
+# Scope for role assignments
+# Original: RoleBoundary
+# Examples:
+#   Single subscription: "/subscriptions/00000000-0000-0000-0000-000000000000"
+#   Management group: "/providers/Microsoft.Management/managementGroups/my-mg"
+# Leave empty to use the scanner subscription
+target_role_boundary = ""
+
+# =============================================================================
+# QUALYS PARAMETERS
+# =============================================================================
+# Equivalent to "Qualys parameters" in user-config.json
+# =============================================================================
+
+# Qualys API Gateway URL
+# Original: APIGatewayURL
+# Find yours at: https://www.qualys.com/platform-identification/
+qualys_api_endpoint = "https://qualysapi.qualys.com"
+
+# Qualys subscription token
+# Original: SubscriptionToken
+# DO NOT put the token here! Use environment variable instead:
+#   export TF_VAR_qualys_subscription_token="your-token"
+#
+# The token will be stored securely in Azure Key Vault
+
+# =============================================================================
+# VM FILTER RULES
+# =============================================================================
+# Equivalent to "VM Filter rules" in user-config.json
+# Format: ["key=value", "foo=bar"]
+# =============================================================================
+
+# All tags must be present for VM to be scanned
+# Original: MustHaveTagList
+vm_must_have_tags = []
+
+# At least one tag must be present for VM to be scanned
+# Original: AtLeastOneInList
+vm_at_least_one_tag = []
+
+# VMs with any of these tags will be excluded
+# Original: NoneInTheList
+vm_none_of_tags = []
+
+# =============================================================================
+# SCANNER SETTINGS
+# =============================================================================
+# Equivalent to "Scanner settings" in user-config.json
+# =============================================================================
+
+# Scan frequency - how often to scan each VM (24-720 hours)
+# Original: IntervalHours
+scan_interval_hours = 24
+
+# Polling frequency - how often to discover VMs (1-24 hours)
+# Original: PollRetryInterval
+poll_interval_hours = 4
+
+# Pause before executing scan on discovered VMs (5-720 minutes)
+# Original: EventsBatchWindow
+scanner_pause_interval_minutes = 10
+
+# Number of locations to scan concurrently (1-25)
+# Original: Concurrency
+location_concurrency = 5
+
+# Scanner VMs per location (1-30)
+# Original: SingleLocationConcurrency
+scanners_per_location = 1
+
+# Enable event-based discovery for ephemeral VMs
+# Original: EventBasedDiscovery ("enabled"/"disabled")
+event_based_discovery = true
+
+# Enable scan sampling for VMSS
+# Original: ScanSampling ("enabled"/"disabled")
+scan_sampling_enabled = false
+
+# Percentage of VMSS to scan when sampling (1-50)
+# Original: SamplingGroupScanPercentage
+sampling_percentage = 10
+
+# =============================================================================
+# ADVANCED OPTIONS
+# =============================================================================
+# These were CLI flags in the original deploy.js
+# =============================================================================
+
+# Azure cloud environment
+# Original: --targetCloud flag
+# Options: "AzureCloud", "AzureUSGovernment", "AzureChinaCloud"
+target_cloud = "AzureCloud"
+
+# Enable debug logging and Application Insights
+# Original: --debug flag
+debug_enabled = false
+
+# Additional tags (optional)
+# Default tags are applied automatically:
+#   App        = "qualys-snapshot-scanner"
+#   AppVersion = "3.20.0"
+#   Name       = "Qualys Snapshot Scanner"
+#
+# Add your own tags here if needed:
+# tags = {
+#   Environment = "production"
+#   CostCenter  = "12345"
+# }

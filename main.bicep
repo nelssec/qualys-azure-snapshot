@@ -125,7 +125,6 @@ module cosmos 'modules/cosmos/main.bicep' = {
     scannerIdentityPrincipalId: security.outputs.scannerIdentityPrincipalId
     privateEndpointSubnetId: networking.outputs.privateEndpointSubnetId
     cosmosDnsZoneId: networking.outputs.cosmosDnsZoneId
-    debugEnabled: debugEnabled
     tags: commonTags
   }
 }

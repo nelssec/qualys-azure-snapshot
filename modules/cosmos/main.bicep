@@ -6,7 +6,6 @@ param scannerIdentityId string
 param scannerIdentityPrincipalId string
 param privateEndpointSubnetId string
 param cosmosDnsZoneId string
-param debugEnabled bool
 param tags object
 
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' = {
@@ -22,7 +21,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' = {
   properties: {
     databaseAccountOfferType: 'Standard'
     publicNetworkAccess: 'Disabled'
-    disableLocalAuth: !debugEnabled
+    disableLocalAuth: true
     isVirtualNetworkFilterEnabled: true
     capabilities: [
       {

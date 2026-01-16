@@ -1,10 +1,11 @@
 using './main.bicep'
 
+param location = 'eastus'
+param resourceGroupName = 'qualys-scanner-rg'
 param qualysEndpoint = 'https://gateway.qg1.apps.qualys.com'
 param qualysSubscriptionToken = readEnvironmentVariable('QUALYS_TOKEN', '')
-param targetLocations = ['eastus', 'westus2']
+param targetLocations = ['eastus']
 param deployerObjectId = readEnvironmentVariable('DEPLOYER_OBJECT_ID', '')
-param targetSubscriptions = []
 param targetCloud = 'AzureCloud'
 param debugEnabled = false
 param eventBasedDiscovery = false

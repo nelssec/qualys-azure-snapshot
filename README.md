@@ -67,10 +67,87 @@ After deployment, the `qualys-function-app-syncer` Logic App automatically downl
 | EU Platform 1 | `https://gateway.qg1.apps.qualys.eu` |
 | Canada | `https://gateway.qg1.apps.qualys.ca` |
 
+## Multi-Region Deployment
+
+Scan VMs across multiple Azure regions by specifying target locations:
+
+```bash
+az deployment sub create \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters \
+    location=eastus \
+    qualysEndpoint='https://gateway.qg1.apps.qualys.com' \
+    qualysSubscriptionToken='your-token' \
+    targetLocations='["eastus", "westus2", "westeurope", "southeastasia"]' \
+    deployerObjectId=$(az ad signed-in-user show --query id -o tsv)
+```
+
+Each target location receives:
+- Dedicated scanner VNet with isolated address space (`10.{n}.0.0/16`)
+- VNet peering to central service network
+- Region-specific disk encryption Key Vault with customer-managed keys
+
+The central services (Function App, Logic Apps, Cosmos DB) deploy to the primary `location` parameter and coordinate scanning across all target regions.
+
+## Cross-Subscription & Tenant-Wide Scanning
+
+By default, the scanner operates within the deployment subscription. To scan VMs across multiple subscriptions or tenant-wide:
+
+### 1. Deploy with Management Group Scope
+
+Set `roleBoundary` to your management group ID:
+
+```bash
+az deployment sub create \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters \
+    location=eastus \
+    qualysEndpoint='https://gateway.qg1.apps.qualys.com' \
+    qualysSubscriptionToken='your-token' \
+    targetLocations='["eastus", "westus2"]' \
+    roleBoundary='/providers/Microsoft.Management/managementGroups/your-mg-id' \
+    deployerObjectId=$(az ad signed-in-user show --query id -o tsv)
+```
+
+This creates custom RBAC roles with `assignableScopes` set to the management group, allowing role assignments across all subscriptions in that hierarchy.
+
+### 2. Assign Roles to Target Subscriptions
+
+After deployment, assign the scanner identity to each target subscription:
+
+```bash
+# Get the scanner identity principal ID from deployment outputs
+SCANNER_PRINCIPAL_ID=$(az deployment sub show \
+  --name <deployment-name> \
+  --query properties.outputs.scannerIdentity.value.principalId -o tsv)
+
+# Get the custom role ID
+ROLE_ID=$(az role definition list \
+  --query "[?contains(roleName, 'Qualys Target Scanner Role')].id" -o tsv)
+
+# Assign to each target subscription
+az role assignment create \
+  --assignee-object-id $SCANNER_PRINCIPAL_ID \
+  --assignee-principal-type ServicePrincipal \
+  --role $ROLE_ID \
+  --scope /subscriptions/<target-subscription-id>
+```
+
+Repeat for each subscription you want to scan.
+
+### Custom Roles Created
+
+| Role | Purpose | Permissions |
+|------|---------|-------------|
+| Qualys Scanner Function App Role | Function App operations | Read VMs, disks, snapshots, network resources |
+| Qualys Scanner Logic App Role | Logic App orchestration | Create/delete VMs, disks, snapshots, NICs, public IPs |
+| Qualys Target Scanner Role | Cross-subscription scanning | Read VMs, create/delete snapshots in target subscriptions |
+
 ## Module Structure
 
 ```
-bicep/
 ├── main.bicep                      # Entry point (subscription scope)
 ├── main.bicepparam                 # Parameter file with env var support
 └── modules/
